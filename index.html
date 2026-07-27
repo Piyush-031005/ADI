@@ -3,11 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ĀDI — An interactive cinematic journey through 13.8 billion years of creation. From the singularity to the future, witness the birth of everything." />
-  <title>ĀDI — The beginning is the end and the end is the beginning.</title>
+  
+  <!-- Primary SEO Meta Tags -->
+  <title>ĀDI — Interactive 3D Journey Through 13.8 Billion Years of Cosmic Evolution</title>
+  <meta name="title" content="ĀDI — Interactive 3D Journey Through 13.8 Billion Years of Cosmic Evolution" />
+  <meta name="description" content="Witness 13.8 billion years of creation in an interactive cinematic WebGL 3D experience. Explore the Big Bang singularity, birth of stars, Cambrian explosion, dinosaur era, human evolution, and a cyberpunk future." />
+  <meta name="keywords" content="cosmic evolution, 13.8 billion years, big bang simulation, interactive 3D timeline, singularity, cambrian explosion, dinosaur era, cyberpunk future, space exploration, WebGL experience, astronomy education, interactive universe" />
+  <meta name="author" content="Piyush Punera & ADI Team" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://adi-evolution.com/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://adi-evolution.com/" />
+  <meta property="og:title" content="ĀDI — Interactive 3D Journey Through 13.8 Billion Years of Cosmic Evolution" />
+  <meta property="og:description" content="Witness 13.8 billion years of creation in an interactive cinematic WebGL 3D experience. From the Big Bang to the Cyberpunk future." />
+  <meta property="og:image" content="/og-image.jpg" />
+  <meta property="og:site_name" content="ĀDI Cosmic Evolution" />
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://adi-evolution.com/" />
+  <meta property="twitter:title" content="ĀDI — 13.8 Billion Years of Cosmic Evolution in 3D" />
+  <meta property="twitter:description" content="Experience the cosmic timeline in an interactive cinematic WebGL simulation. From the Singularity to the cyberpunk future." />
+  <meta property="twitter:image" content="/og-image.jpg" />
+
+  <!-- Schema.org JSON-LD Structured Data for Top Google SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://adi-evolution.com/#website",
+        "url": "https://adi-evolution.com/",
+        "name": "ĀDI — Cosmic Evolution Timeline",
+        "description": "An interactive WebGL cinematic journey through 13.8 billion years of cosmic evolution.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "ĀDI Creation Team"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "ĀDI Interactive 3D Universe Simulation",
+        "operatingSystem": "All",
+        "applicationCategory": "EducationalApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Interactive WebGL simulation covering the Big Bang, First Stars, Cosmic Web, Cambrian Explosion, Dinosaurs, Human DNA, and Cyberpunk Future."
+      }
+    ]
+  }
+  </script>
+
+  <!-- Google Fonts & Styles -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/adi-style.css">
 </head>
 <body>
@@ -18,7 +74,7 @@
   </div>
 
   <!-- WebGL Canvas -->
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" aria-label="3D Interactive Simulation of the Universe"></canvas>
 
   <!-- Clean Minimal Loader -->
   <div id="loader">
@@ -27,23 +83,23 @@
     <div id="loader-hint">Click to initiate</div>
   </div>
 
-  <!-- UI Overlay -->
-  <div id="ui-overlay">
+  <!-- UI Overlay with Semantic Structure -->
+  <header id="ui-overlay">
 
-    <!-- Brand -->
+    <!-- Brand with Primary H1 Heading for SEO -->
     <div id="brand">
-      <div id="brand-name">ĀDI</div>
+      <h1 id="brand-name">ĀDI</h1>
       <div id="brand-tag">THE BEGINNING IS THE END AND THE END IS THE BEGINNING.</div>
     </div>
 
     <!-- Year counter -->
-    <div id="year-counter">
+    <div id="year-counter" aria-live="polite">
       <div id="year-value">13.8 BYA</div>
     </div>
 
-    <!-- Era display -->
-    <div id="era-display">
-      <div id="era-title">THE VOID</div>
+    <!-- Era display with H2 for Subheadings -->
+    <div id="era-display" aria-live="polite">
+      <h2 id="era-title">THE VOID</h2>
       <div id="era-subtitle">Before time. Before space.</div>
     </div>
 
@@ -53,10 +109,10 @@
       <div class="scroll-hint-arrow"></div>
     </div>
 
-    <!-- Timeline -->
-    <div id="timeline">
+    <!-- Timeline Navigation -->
+    <nav id="timeline" aria-label="Cosmic Timeline Eras">
       <!-- JS generates dots + lines -->
-    </div>
+    </nav>
 
     <!-- Final message -->
     <div id="final-message">
@@ -64,7 +120,75 @@
       <div id="final-sub">— ĀDI · THE BEGINNING IS THE END AND THE END IS THE BEGINNING.</div>
     </div>
 
-  </div>
+  </header>
+
+  <!-- SEO Hidden Semantic Article Engine (Allows Google Search Bots to Index 100% of the Timeline) -->
+  <main class="sr-only">
+    <article>
+      <h2>The Comprehensive 13.8 Billion Year Cosmic Evolution Timeline</h2>
+      <p>ĀDI is an interactive 3D WebGL educational experience detailing the history of the universe from the initial cosmic singularity to the cyberpunk technological future.</p>
+      
+      <section>
+        <h3>Era 0: The Void (Before Time and Space)</h3>
+        <p>In the beginning, there was nothing. Absolute silence, zero dimensions, and infinite potential before the dawn of spacetime.</p>
+      </section>
+
+      <section>
+        <h3>Era 1: The Singularity (13.8 Billion Years Ago)</h3>
+        <p>The primordial point of infinite density and temperature. Witness the quantum gravitational fluctuations triggering the Big Bang expansion.</p>
+      </section>
+
+      <section>
+        <h3>Era 2: The Big Bang & Inflation (13.79 Billion Years Ago)</h3>
+        <p>Cosmic inflation expands spacetime faster than light. Subatomic particles form as the universe rapidly cools from trillions of degrees.</p>
+      </section>
+
+      <section>
+        <h3>Era 3: First Stars & Reionization (13.6 Billion Years Ago)</h3>
+        <p>Gravity condenses primordial hydrogen and helium into Population III supermassive stars, igniting nuclear fusion and illuminating the cosmic dark ages.</p>
+      </section>
+
+      <section>
+        <h3>Era 4: The Cosmic Web & Galaxies (10 Billion Years Ago)</h3>
+        <p>Dark matter filaments sculpt the universe into vast galactic superclusters, nebulae, and spiral galaxies like the Milky Way.</p>
+      </section>
+
+      <section>
+        <h3>Era 5: Birth of the Solar System (4.6 Billion Years Ago)</h3>
+        <p>A swirling solar nebula collapses to form our Sun, while protoplanetary dust disks coalesce into rocky terrestrial planets and gas giants.</p>
+      </section>
+
+      <section>
+        <h3>Era 6: Formation of Earth & The Moon (4.5 Billion Years Ago)</h3>
+        <p>A planetary collision between proto-Earth and Theia forms the Moon. Molten magma oceans cool to form the first terrestrial crust and oceans.</p>
+      </section>
+
+      <section>
+        <h3>Era 7: Primordial Life & The Cambrian Explosion (540 Million Years Ago)</h3>
+        <p>Deep-sea hydrothermal vents give birth to RNA and single-celled organisms, culminating in the Cambrian explosion of complex multicellular marine biodiversity.</p>
+      </section>
+
+      <section>
+        <h3>Era 8: Reign of the Dinosaurs (250 - 66 Million Years Ago)</h3>
+        <p>Mesozoic era megafauna rule lush green terrestrial ecosystems. Tyrannosaurus rex, Velociraptor, Triceratops, and Pterodactyls thrive until the asteroid impact.</p>
+      </section>
+
+      <section>
+        <h3>Era 9: Human Evolution & Consciousness (300,000 Years Ago)</h3>
+        <p>The rise of Homo sapiens. Genetic evolution and DNA double-helix structures give birth to neural networks, language, culture, and technological civilization.</p>
+      </section>
+
+      <section>
+        <h3>Era 10: The Cyberpunk Technological Future</h3>
+        <p>Humanity expands into orbital space stations, artificial intelligence, cybernetic enhancements, and advanced planetary megacities.</p>
+      </section>
+
+      <section>
+        <h3>Era 11: The Unknown World & Beyond</h3>
+        <p>The ultimate destiny of intelligence and cosmic evolution. The beginning is the end, and the end is the beginning of a new universal cycle.</p>
+      </section>
+    </article>
+  </main>
 
   <script type="module" src="/src/main.js"></script>
 </body>
