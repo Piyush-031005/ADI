@@ -51,7 +51,7 @@ export class Era0_Void {
     // Using standard PointsMaterial guarantees it renders perfectly on all GPUs
     // without risking custom shaders compiling into a single black dot on certain laptops.
     const mat = new THREE.PointsMaterial({
-      size: 1.5, // Large enough to be instantly visible
+      size: 8.0, // Massively increased size so it is undeniably visible from far away
       vertexColors: true,
       transparent: true,
       opacity: 0.8, // High base opacity so it's not pitch black

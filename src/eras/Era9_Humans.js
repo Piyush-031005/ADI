@@ -32,38 +32,6 @@ export class Era9_Humans {
     const hemiLight = new THREE.HemisphereLight(0xffddaa, 0x0a1526, 4.0); 
     this.group.add(hemiLight);
 
-    // Add a vibrant cinematic gradient sky (Cosmic Twilight to Starry Night)
-    // This makes it mathematically impossible for the background to look like an empty black void.
-    const bgGeo = new THREE.SphereGeometry(300, 32, 32);
-    const bgMat = new THREE.ShaderMaterial({
-      uniforms: {
-        colorTop: { value: new THREE.Color(0x0a1526) }, // Deep space blue
-        colorBottom: { value: new THREE.Color(0x8a2345) } // Rich cosmic magenta/aurora
-      },
-      vertexShader: `
-        varying vec3 vWorldPosition;
-        void main() {
-          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-          vWorldPosition = worldPosition.xyz;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 colorTop;
-        uniform vec3 colorBottom;
-        varying vec3 vWorldPosition;
-        void main() {
-          float h = normalize(vWorldPosition).y;
-          // Creates a beautiful smooth gradient from bottom (-1) to top (1)
-          gl_FragColor = vec4(mix(colorBottom, colorTop, max(pow(max(h, 0.0), 0.5), 0.0)), 1.0);
-        }
-      `,
-      side: THREE.BackSide,
-      depthWrite: false
-    });
-    this.bgSphere = new THREE.Mesh(bgGeo, bgMat);
-    this.group.add(this.bgSphere);
-
     // 2. Swirling DNA / Neural Particle Matrix (Optimized from 15k to 4k for GPU)
     const count = 4000;
     const pos = new Float32Array(count * 3);
@@ -154,12 +122,15 @@ export class Era9_Humans {
         const targetScale = scale / maxDim;
         model.scale.setScalar(targetScale);
 
+        // MUST update matrix world AFTER scaling, otherwise the bounding box math is completely broken!
+        model.updateMatrixWorld(true);
+
         // Normalize origin so they sit perfectly on the floor (Y axis aligned)
-        const center = box.getCenter(new THREE.Vector3());
-        const bottomY = box.min.y * targetScale;
+        const boxAfterScale = new THREE.Box3().setFromObject(model);
+        const bottomY = boxAfterScale.min.y;
         
-        // Set all models to be perfectly aligned at Y = -10 (or user-defined y) minus their intrinsic bottom offset
-        model.position.set(x, y - bottomY, z);
+        // Set all models to be perfectly aligned at Y = -15 minus their intrinsic bottom offset
+        model.position.set(x, y - (bottomY - model.position.y), z);
         model.rotation.y = rotY;
 
         // Ensure rich PBR material rendering
@@ -225,7 +196,56 @@ export class Era9_Humans {
     // --- STAGE 3: Industrial / Modern Cities (Z: -40 to -90) ---
     loadModelWithSpotlight('t72m1.glb', -16, -15, -40, 28, Math.PI * 0.25, 0x4488ff, 300);
     loadModelWithSpotlight('casual_weekend_outfit.glb', 12, -15, -65, 20, -Math.PI * 0.1, 0x00f3ff, 250);
-    loadModelWithSpotlight('city.glb', 0, -20, -100, 60, 0, 0x00aaff, 400); // Massive city in the center distance
+    
+    // --- Massive 360-Degree Cyber City Surround ---
+    // Instead of loading 4 different massive city files (which causes a 10+ second transition freeze),
+    // we load one high-quality city and clone it instantly in memory to surround the entire horizon!
+    loader.load(basePath + 'city.glb', (gltf) => {
+      const baseCity = gltf.scene;
+      
+      const cityScale = 120; // Massive scale
+      const box = new THREE.Box3().setFromObject(baseCity);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const targetScale = cityScale / Math.max(size.x, size.y, size.z);
+      baseCity.scale.setScalar(targetScale);
+      baseCity.updateMatrixWorld(true);
+      
+      const bottomY = new THREE.Box3().setFromObject(baseCity).min.y;
+
+      // Ensure rich PBR material rendering without shadow casting for massive performance
+      baseCity.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = false;
+          child.receiveShadow = false;
+        }
+      });
+
+      // Clone and place 4 cities in a massive ring around the user (radius 180)
+      const radius = 180;
+      for (let i = 0; i < 4; i++) {
+        const angle = (i * Math.PI) / 2;
+        const cityClone = baseCity.clone();
+        
+        // Center the ring around the middle of the transition path (Z = 20)
+        const cx = Math.cos(angle) * radius;
+        const cz = 20 + Math.sin(angle) * radius;
+        
+        cityClone.position.set(cx, -15 - bottomY, cz);
+        
+        // Face inwards towards the center
+        cityClone.rotation.y = -angle - Math.PI / 2;
+        
+        this.group.add(cityClone);
+        this.models.push(cityClone);
+      }
+      
+      // Add a massive blue ambient glow specifically for the 360 city
+      const cityLight = new THREE.PointLight(0x0088ff, 5.0, 500);
+      cityLight.position.set(0, 50, 20);
+      this.group.add(cityLight);
+      
+    }, undefined, (e) => console.error("Error loading city", e));
   }
 
   getCameraPath() {
