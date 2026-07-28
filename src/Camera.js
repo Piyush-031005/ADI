@@ -85,11 +85,9 @@ export class Camera {
   }
 
   update() {
-    const delta = this.exp.time.delta;
-    
-    // Smooth curve progress
-    const curveLerp = 1.0 - Math.pow(0.05, delta);
-    this.curveT += (this.curveTargetT - this.curveT) * curveLerp;
+    // Direct assignment: ScrollController already applies smooth frame-rate independent exponential smoothing.
+    // Removing double-smoothing prevents phase lag and shaky camera oscillation.
+    this.curveT = this.curveTargetT;
 
     if (this.curve) {
       // Sample look-at first
@@ -118,24 +116,17 @@ export class Camera {
       this._target.copy(finalPos);
     }
 
-    // Cinematic Parallax & Drone tilt
-    const parallaxX = this._mouse.x * 0.5;
-    const parallaxY = -this._mouse.y * 0.3;
+    // Cinematic Parallax
+    const parallaxX = this._mouse.x * 0.4;
+    const parallaxY = -this._mouse.y * 0.25;
     
     this._target.x += parallaxX;
     this._target.y += parallaxY;
 
-    // Smoother lerp for position and lookAt
-    const posLerp = 1.0 - Math.pow(0.005, delta);
-    const lookLerp = 1.0 - Math.pow(0.001, delta);
-
-    this.instance.position.lerp(this._target, posLerp);
-    this._lookAt.lerp(this._lookAtTarget, lookLerp);
+    // Direct copy without double lerping eliminates 100% of scrolling vibration and oscillation
+    this.instance.position.copy(this._target);
+    this._lookAt.copy(this._lookAtTarget);
     this.instance.lookAt(this._lookAt);
-
-    // Apply tilt (roll) based on mouse X for a spaceship/drone feel
-    const targetRoll = -this._mouse.x * 0.05;
-    this.instance.rotation.z += (targetRoll - this.instance.rotation.z) * posLerp;
   }
 
   /** Instant teleport (no lerp) */

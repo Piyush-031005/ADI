@@ -66,6 +66,9 @@ export class Experience {
   startLoop() {
     const loop = () => {
       this.time.tick();
+      if (this.scroll && this.scroll.update) {
+        this.scroll.update(this.time.delta);
+      }
       this.eras.update();
       this.camera.update();
       this.renderer.render();
