@@ -2,12 +2,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
- * Era 9 — HUMANS (Pure 3D 4K Cinematic Evolution Scene)
- * 100% 3D WebGL Diorama using user-provided high-poly GLB models:
- * 1. Dawn of Man: homo_heidelbergensis, women_of_primitive_tribes
- * 2. Ancient Civilizations: greek_temple, feathered_warrior
- * 3. Age of Discovery & Industrial: queen_annes_revenge, t72m1
- * 4. Modern Era: casual_weekend_outfit
+ * Era 9 — HUMANS (Award-Winning 4K Cinematic Evolution Experience)
+ * A dramatic, awe-inspiring flight through the void of human history.
+ * No cheap flat terrain planes. Instead, colossal 3D models float in deep 
+ * space, illuminated by intense cinematic spotlights and volumetric stardust.
  */
 export class Era9_Humans {
   constructor(experience) {
@@ -19,100 +17,98 @@ export class Era9_Humans {
     
     this.clock = new THREE.Clock();
     this.mixers = [];
+    this.models = [];
 
-    this._buildEnvironment();
-    this._loadHumanEvolutionModels();
-
-    // Lighting setup for rich 3D shading
-    const ambient = new THREE.AmbientLight(0xffeedd, 1.8);
-    this.group.add(ambient);
-
-    const sun = new THREE.DirectionalLight(0xffaa44, 3.5);
-    sun.position.set(40, 50, 30);
-    sun.castShadow = true;
-    this.group.add(sun);
-
-    const rim = new THREE.DirectionalLight(0x00aaff, 2.5);
-    rim.position.set(-40, 20, -30);
-    this.group.add(rim);
+    this._buildCinematicEnvironment();
+    this._loadColossalEvolutionModels();
   }
 
-  _buildEnvironment() {
-    // Terrain base
-    const terrainGeo = new THREE.PlaneGeometry(120, 200, 64, 64);
-    terrainGeo.rotateX(-Math.PI * 0.5);
+  _buildCinematicEnvironment() {
+    // 1. Dramatic Lighting
+    const ambient = new THREE.AmbientLight(0x0a1526, 2.0); // Deep cinematic blue ambient
+    this.group.add(ambient);
 
-    const terrainMat = new THREE.MeshStandardMaterial({
-      color: 0x1a1c23,
-      roughness: 0.8,
-      metalness: 0.2,
-      flatShading: true
-    });
+    // 2. Swirling DNA / Neural Particle Matrix (Replaces flat terrain)
+    const count = 15000;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
 
-    this.terrain = new THREE.Mesh(terrainGeo, terrainMat);
-    this.terrain.position.set(0, -10, 0);
-    this.terrain.receiveShadow = true;
-    this.group.add(this.terrain);
+    for (let i = 0; i < count; i++) {
+      // Create a double helix / neural path stretching along the Z axis
+      const t = Math.random() * 200 - 40; // Z from -40 to 160
+      const radius = 15 + Math.random() * 10;
+      const angle = t * 0.1 + (Math.random() > 0.5 ? 0 : Math.PI);
+      
+      // Scatter particles around the helix
+      pos[i*3]   = Math.cos(angle) * radius + (Math.random() - 0.5) * 15;
+      pos[i*3+1] = Math.sin(angle) * radius + (Math.random() - 0.5) * 15;
+      pos[i*3+2] = t;
 
-    // Glowing River of Time running through the center
-    const riverGeo = new THREE.PlaneGeometry(14, 200, 32, 64);
-    riverGeo.rotateX(-Math.PI * 0.5);
+      // Color gradient: Warm orange/gold at the start (Dawn of Man) to cool cyan/magenta at the end (Modern)
+      const mixFactor = (160 - t) / 200; 
+      const color = new THREE.Color().lerpColors(
+        new THREE.Color(0x00f3ff), // Modern (Cyan)
+        new THREE.Color(0xffaa00), // Ancient (Gold/Fire)
+        mixFactor
+      );
+      
+      // Add random intense bright sparks
+      if (Math.random() > 0.95) color.setHex(0xffffff);
 
-    this.riverMat = new THREE.ShaderMaterial({
+      col[i*3]   = color.r;
+      col[i*3+1] = color.g;
+      col[i*3+2] = color.b;
+    }
+
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    dustGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+
+    this.stardustMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
       vertexShader: `
-        varying vec2 vUv;
+        uniform float uTime;
+        varying vec3 vColor;
         void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vColor = color;
+          vec3 p = position;
+          // Gentle pulsing breathing effect
+          p.x += sin(p.z * 0.05 + uTime) * 2.0;
+          p.y += cos(p.z * 0.05 + uTime) * 2.0;
+          vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = (40.0 / -mvPos.z);
+          gl_Position = projectionMatrix * mvPos;
         }
       `,
       fragmentShader: `
-        uniform float uTime;
-        varying vec2 vUv;
+        varying vec3 vColor;
         void main() {
-          float wave = sin(vUv.y * 40.0 - uTime * 3.0) * 0.5 + 0.5;
-          vec3 c1 = vec3(0.0, 0.6, 1.0);
-          vec3 c2 = vec3(0.8, 0.2, 1.0);
-          vec3 color = mix(c1, c2, wave);
-          float edge = sin(vUv.x * 3.14159);
-          gl_FragColor = vec4(color * 2.0, edge * 0.7);
+          vec2 xy = gl_PointCoord.xy - vec2(0.5);
+          float dist = length(xy);
+          if (dist > 0.5) discard;
+          float glow = smoothstep(0.5, 0.0, dist);
+          gl_FragColor = vec4(vColor * glow * 1.5, glow * 0.8);
         }
       `,
       transparent: true,
       blending: THREE.AdditiveBlending,
-      depthWrite: false
+      depthWrite: false,
+      vertexColors: true
     });
 
-    const river = new THREE.Mesh(riverGeo, this.riverMat);
-    river.position.set(0, -9.8, 0);
-    this.group.add(river);
-
-    // Ambient Stardust Fog
-    const count = 5000;
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i*3]   = (Math.random() - 0.5) * 120;
-      pos[i*3+1] = -5 + Math.random() * 40;
-      pos[i*3+2] = (Math.random() - 0.5) * 180;
-    }
-    const dustGeo = new THREE.BufferGeometry();
-    dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    this.dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-      size: 0.6, color: 0xffaa44, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending
-    }));
+    this.dust = new THREE.Points(dustGeo, this.stardustMat);
     this.group.add(this.dust);
   }
 
-  _loadHumanEvolutionModels() {
+  _loadColossalEvolutionModels() {
     const loader = new GLTFLoader();
     const basePath = '/models/humans/';
 
-    const loadModel = (filename, x, y, z, scale, rotY, callback) => {
+    const loadModelWithSpotlight = (filename, x, y, z, scale, rotY, lightColor, lightIntensity) => {
       loader.load(basePath + filename, (gltf) => {
         const model = gltf.scene;
         
-        // Auto-normalize scale
+        // Auto-normalize scale to make them Colossal
         const box = new THREE.Box3().setFromObject(model);
         const size = new THREE.Vector3();
         box.getSize(size);
@@ -123,12 +119,14 @@ export class Era9_Humans {
         model.position.set(x, y, z);
         model.rotation.y = rotY;
 
+        // Ensure rich PBR material rendering
         model.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.envMapIntensity = 1.5;
+              child.material.envMapIntensity = 1.0;
+              child.material.needsUpdate = true;
             }
           }
         });
@@ -139,40 +137,68 @@ export class Era9_Humans {
           this.mixers.push(mixer);
         }
 
+        // Add dramatic cinematic spotlight pointing exactly at this model
+        const spotLight = new THREE.SpotLight(lightColor, lightIntensity);
+        spotLight.position.set(x + 10, y + 25, z + 15);
+        spotLight.angle = Math.PI / 4;
+        spotLight.penumbra = 0.5;
+        spotLight.decay = 1.5;
+        spotLight.distance = 100;
+        spotLight.castShadow = true;
+        
+        const target = new THREE.Object3D();
+        target.position.set(x, y, z);
+        this.group.add(target);
+        spotLight.target = target;
+        
+        this.group.add(spotLight);
+        
+        // Subtle rim light from below
+        const rimLight = new THREE.PointLight(0xffffff, lightIntensity * 0.3, 40);
+        rimLight.position.set(x - 5, y - 10, z - 10);
+        this.group.add(rimLight);
+
         this.group.add(model);
-        if (callback) callback(model);
+        this.models.push(model);
       }, undefined, (e) => console.error("Error loading " + filename, e));
     };
 
-    // --- STAGE 0: Dawn of Man (Z: 60) ---
-    loadModel('homo_heidelbergensis.glb', -8, -10, 60, 6, Math.PI * 0.25);
-    loadModel('women_of_primitive_tribes.glb', 8, -10, 60, 5.5, -Math.PI * 0.15);
+    // --- STAGE 0: Dawn of Man (Z: 120 to 100) ---
+    // Floating colossal primitive hominid lit by warm fire light
+    loadModelWithSpotlight('homo_heidelbergensis.glb', -12, -5, 120, 20, Math.PI * 0.15, 0xff5500, 200);
+    loadModelWithSpotlight('women_of_primitive_tribes.glb', 12, -8, 100, 22, -Math.PI * 0.2, 0xff7700, 200);
 
-    // --- STAGE 1: Ancient Civilizations (Z: 30) ---
-    // A massive Greek Temple in the background
-    loadModel('greek_temple.glb', -15, -10, 30, 20, Math.PI * 0.15);
-    // Ancient warrior standing proud
-    loadModel('feathered_warrior_of_the_ancestors_3d_model.glb', 10, -10, 35, 7, -Math.PI * 0.3);
+    // --- STAGE 1: Ancient Civilizations (Z: 70 to 50) ---
+    // Massive majestic Greek Temple illuminated by god rays (bright gold/white)
+    loadModelWithSpotlight('greek_temple.glb', -18, -12, 70, 35, Math.PI * 0.2, 0xffddaa, 300);
+    // Colossal Feathered Warrior standing guard
+    loadModelWithSpotlight('feathered_warrior_of_the_ancestors_3d_model.glb', 15, -15, 50, 25, -Math.PI * 0.3, 0xffcc88, 250);
 
-    // --- STAGE 2: Age of Discovery / Conflict (Z: 0) ---
-    // Pirate Ship / Galleon
-    loadModel('queen_annes_revenge.glb', -12, -10, 5, 18, Math.PI * 0.4);
-    // Modern Warfare / Tank
-    loadModel('t72m1.glb', 14, -10, -5, 12, -Math.PI * 0.2);
+    // --- STAGE 2: Age of Discovery & Industrial Conflict (Z: 20 to 0) ---
+    // Ghostly massive galleon ship 
+    loadModelWithSpotlight('queen_annes_revenge.glb', -16, -10, 20, 30, Math.PI * 0.3, 0x88ccff, 250);
+    // Imposing brutalist tank lit by harsh cool light
+    loadModelWithSpotlight('t72m1.glb', 16, -12, 0, 28, -Math.PI * 0.25, 0x4488ff, 300);
 
     // --- STAGE 3: Modern Era (Z: -30) ---
-    loadModel('casual_weekend_outfit.glb', 0, -10, -30, 6, 0);
+    // Modern human silhouetted against glowing cyan/neon light
+    loadModelWithSpotlight('casual_weekend_outfit.glb', 0, -15, -30, 22, 0, 0x00f3ff, 250);
   }
 
   getCameraPath() {
+    // A buttery smooth, cinematic flight path weaving *through* the colossal 3D holograms
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 4, 85),    // Entrance
-      new THREE.Vector3(0, 4, 60),    // Stage 0: Primitive Man
-      new THREE.Vector3(0, 5, 35),    // Stage 1: Ancient Temple & Warrior
-      new THREE.Vector3(0, 5, 0),     // Stage 2: Ship & Tank
-      new THREE.Vector3(0, 3, -20),   // Stage 3: Modern Human
+      new THREE.Vector3(0, 0, 160),   // Far entrance
+      new THREE.Vector3(5, -2, 120),  // Fly past Heidelbergensis
+      new THREE.Vector3(-5, 0, 90),   // Fly past Primitive Women
+      new THREE.Vector3(8, -5, 60),   // Fly past Greek Temple
+      new THREE.Vector3(-8, 2, 35),   // Fly past Warrior
+      new THREE.Vector3(6, -4, 10),   // Fly past Ship
+      new THREE.Vector3(-6, 2, -15),  // Fly past Tank
+      new THREE.Vector3(0, 5, -45),   // Rise up and look down at Modern Human
     ]);
-    return { curve, lookAt: new THREE.Vector3(0, -5, -60) };
+    // The camera lookAt target glides smoothly ahead of the camera
+    return { curve, lookAt: new THREE.Vector3(0, -2, -60) };
   }
 
   show(duration = 1.0) {
@@ -186,19 +212,26 @@ export class Era9_Humans {
   }
 
   onScrollT(t) {
-    // Smooth camera progression handles transitions naturally
+    // Models slowly rotate or float based on scroll to feel alive
+    this.models.forEach((model, idx) => {
+      model.position.y += Math.sin(t * Math.PI * 4 + idx) * 0.05;
+    });
   }
 
   update(time) {
     if (!this.visible) return;
     const delta = this.clock.getDelta();
 
-    if (this.riverMat) this.riverMat.uniforms.uTime.value = time;
+    if (this.stardustMat) {
+      this.stardustMat.uniforms.uTime.value = time;
+    }
 
     this.mixers.forEach(m => m.update(delta));
 
-    if (this.dust) {
-      this.dust.rotation.y = time * 0.02;
-    }
+    // Very slow majestic rotation of the colossal models
+    this.models.forEach((model, idx) => {
+      // Subtle hovering effect
+      model.rotation.y += Math.sin(time * 0.5 + idx) * 0.001;
+    });
   }
 }
