@@ -24,16 +24,42 @@ export class Era9_Humans {
   }
 
   _buildCinematicEnvironment() {
-    // 1. Dramatic Lighting (Boosted ambient to avoid pitch blackness)
-    const ambient = new THREE.AmbientLight(0x2a3546, 4.0); // Brighter cinematic ambient
+    // 1. Dramatic Lighting (Hemisphere + Ambient ensures zero pitch black areas on models)
+    const ambient = new THREE.AmbientLight(0x405060, 5.0); // Very bright cool ambient
     this.group.add(ambient);
+    
+    // Hemisphere light provides a gradient of light from sky (warm) to ground (cool)
+    const hemiLight = new THREE.HemisphereLight(0xffddaa, 0x0a1526, 4.0); 
+    this.group.add(hemiLight);
 
-    // Add a deep cosmic background sphere so the void isn't pitch black
-    const bgGeo = new THREE.SphereGeometry(250, 32, 32);
-    const bgMat = new THREE.MeshBasicMaterial({
-      color: 0x050a12,
+    // Add a vibrant cinematic gradient sky (Cosmic Twilight to Starry Night)
+    // This makes it mathematically impossible for the background to look like an empty black void.
+    const bgGeo = new THREE.SphereGeometry(300, 32, 32);
+    const bgMat = new THREE.ShaderMaterial({
+      uniforms: {
+        colorTop: { value: new THREE.Color(0x0a1526) }, // Deep space blue
+        colorBottom: { value: new THREE.Color(0x8a2345) } // Rich cosmic magenta/aurora
+      },
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 colorTop;
+        uniform vec3 colorBottom;
+        varying vec3 vWorldPosition;
+        void main() {
+          float h = normalize(vWorldPosition).y;
+          // Creates a beautiful smooth gradient from bottom (-1) to top (1)
+          gl_FragColor = vec4(mix(colorBottom, colorTop, max(pow(max(h, 0.0), 0.5), 0.0)), 1.0);
+        }
+      `,
       side: THREE.BackSide,
-      fog: false
+      depthWrite: false
     });
     this.bgSphere = new THREE.Mesh(bgGeo, bgMat);
     this.group.add(this.bgSphere);

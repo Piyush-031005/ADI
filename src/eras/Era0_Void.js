@@ -88,8 +88,9 @@ export class Era0_Void {
           if (ll > 0.5) discard;
           
           float glow = (0.5 - ll) * 2.0;
-          // Drastically boosted brightness and opacity multiplier so the Void pops!
-          gl_FragColor = vec4(vColor * 1.8, glow * vAlpha * uOpacity * 2.5);
+          // Forcefully boosted brightness and base opacity so the Void pops immediately!
+          float finalAlpha = (glow + 0.3) * vAlpha * (uOpacity * 4.0 + 0.5);
+          gl_FragColor = vec4(vColor * 3.5, finalAlpha);
         }
       `,
       transparent: true,
