@@ -104,13 +104,14 @@ export class AudioEngine {
     const nextTrack = this.tracks[targetUrl];
     if (!nextTrack) return;
 
-    // Fade out previous
+    // Fade out previous rapidly to prevent sound lingering across era boundaries
     if (this.activeTrackObj && this.activeTrackObj !== nextTrack) {
       const prev = this.activeTrackObj;
+      gsap.killTweensOf(prev.gainNode.gain);
       gsap.to(prev.gainNode.gain, {
         value: 0,
-        duration: 2.5,
-        ease: 'power2.inOut',
+        duration: 0.6,
+        ease: 'power2.out',
         onComplete: () => {
           prev.audio.pause();
         }
@@ -119,12 +120,13 @@ export class AudioEngine {
 
     this.activeTrackUrl = targetUrl;
     this.activeTrackObj = nextTrack;
+    gsap.killTweensOf(nextTrack.gainNode.gain);
 
     // Special track timings
     if (eraIndex === 1) {
-      nextTrack.audio.currentTime = 6.0;
+      nextTrack.audio.currentTime = 3.0;
     } else if (eraIndex === 2) {
-      nextTrack.audio.currentTime = 5.0;
+      nextTrack.audio.currentTime = 0; // Start Big Bang immediately at 0s
     }
 
     // Ensure it's playing
@@ -135,11 +137,15 @@ export class AudioEngine {
       });
     }
 
-    // Fade in new (Gain multiplier goes to 1.0, masterGain does the overall boost)
+    // Fade in: Big Bang (era 2) hits instantaneously at full volume, others fade smoothly over 1.2s
+    const fadeDuration = (eraIndex === 2) ? 0.05 : 1.2;
+    if (eraIndex === 2) {
+      nextTrack.gainNode.gain.setValueAtTime(1.0, this.ctx.currentTime);
+    }
     gsap.to(nextTrack.gainNode.gain, {
       value: 1.0,
-      duration: 3.0,
-      ease: 'power2.inOut'
+      duration: fadeDuration,
+      ease: 'power2.out'
     });
   }
 }
