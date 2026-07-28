@@ -108,6 +108,13 @@ export class Era9_Humans {
           gltf.animations.forEach(clip => mixer.clipAction(clip).play());
           this.mixers.push(mixer);
         }
+        
+        // INCREMENTAL GPU PRE-WARM: Force texture upload immediately after this single model loads
+        // This spreads the massive GPU upload cost over time, completely eliminating the 4-5s freeze!
+        requestAnimationFrame(() => {
+           this.exp.renderer.instance.compile(model, this.exp.camera.instance);
+        });
+        
         resolve();
       }, undefined, e => { console.warn('skip', file, e); resolve(); });
     });

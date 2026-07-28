@@ -98,21 +98,6 @@ export class EraDirector {
       if (this.currentEra) this.currentEra.onScrollT(eraT);
       this.timeline.setProgress(eraIndex, eraT);
       this.yearCounter.setEra(eraIndex, eraT);
-
-      // GPU PRE-WARM: When user is in Era 8 (Dinosaurs) and > 50% through,
-      // pre-compile Era 9 (Humans) so there is ZERO stutter on transition.
-      if (eraIndex === 9 && eraT > 0.5 && !this._era9PreWarmed) {
-        this._era9PreWarmed = true;
-        const era9 = this.eras[10]; // index 10 = Era9_Humans
-        if (era9 && era9.group) {
-          // Force render to GPU in the background — eliminates the 4-5s freeze
-          requestAnimationFrame(() => {
-            era9.group.visible = true;
-            this.exp.renderer.instance.compile(era9.group, this.exp.camera.instance);
-            era9.group.visible = false;
-          });
-        }
-      }
     });
   }
 
@@ -152,8 +137,14 @@ export class EraDirector {
 
     // Final message
     const finalMsg = document.getElementById('final-message');
+    const eraDisplay = document.getElementById('era-display');
+    const eraInfo    = document.getElementById('era-info');
     if (finalMsg) {
-      finalMsg.classList.toggle('visible', index === 12);
+      const isUnknown = (index === 12);
+      finalMsg.classList.toggle('visible', isUnknown);
+      // Hide era title text so it doesn't pile on top of the final quote
+      if (eraDisplay) eraDisplay.style.opacity = isUnknown ? '0' : '';
+      if (eraInfo)    eraInfo.style.opacity    = isUnknown ? '0' : '';
     }
   }
 
