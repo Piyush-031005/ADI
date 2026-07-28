@@ -57,7 +57,7 @@ body, html {
 #loader {
   position: fixed; top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: radial-gradient(circle at center, #0a1528 0%, #000000 70%);
+  background: #000000;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -86,28 +86,19 @@ body, html {
   font-family: var(--font-sans);
   font-size: 0.8rem;
   letter-spacing: 0.3em;
-  color: #fff;
+  color: var(--color-muted);
   text-transform: uppercase;
-  padding: 16px 36px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top: 1px solid rgba(255, 255, 255, 0.45); /* Reflective glass edge */
-  border-radius: 40px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  animation: pulseHint 2.5s infinite;
+  animation: pulseHint 2s infinite;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 #loader-hint:hover {
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
+  color: #fff;
+  opacity: 1;
 }
 
 @keyframes pulseHint {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
 
@@ -123,22 +114,15 @@ body, html {
 /* Brand - Top Left */
 #brand {
   position: absolute;
-  top: 35px; left: 40px;
-  padding: 16px 26px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.25); /* Reflective glass highlight */
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  top: 40px; left: 50px;
 }
 #brand-name {
   font-family: var(--font-serif);
   font-size: 1.6rem;
   letter-spacing: 0.2em;
-  margin: 0 0 4px 0; /* Reset H1 margin */
+  margin: 0 0 4px 0;
   font-weight: 400;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 #brand-tag {
   font-size: 0.65rem;
@@ -150,53 +134,96 @@ body, html {
 /* Year Counter - Top Right */
 #year-counter {
   position: absolute;
-  top: 40px; right: 40px;
-  padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.25); /* Reflective glass highlight */
-  border-radius: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  top: 45px; right: 50px;
   font-size: 0.85rem;
   letter-spacing: 0.15em;
   color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 
-/* Era Display - Center with Sleek Glass Reflection Panel */
+/* Era Display - Center Pure Text */
 #era-display {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
   opacity: 0; /* JS controls fade */
-  padding: 35px 60px;
-  background: rgba(10, 15, 25, 0.35);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.35); /* Ultra reflective top edge */
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  width: 100%;
+  max-width: 900px;
 }
 #era-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 5rem;
+  font-size: 5.5rem;
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 12px;
-  margin: 0 -12px 20px 0; /* Reset H2 top margin & fix letter-spacing offset */
+  margin: 0 -12px 15px 0;
   line-height: 1;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.9), 0 0 20px rgba(255,255,255,0.2);
 }
 #era-subtitle {
   font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 5px;
-  margin-right: -5px; /* Fixes off-center bug */
-  color: rgba(255, 255, 255, 0.7);
+  margin-right: -5px;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+/* Lower-Left Era Info / Crazy Facts */
+#era-info {
+  position: absolute;
+  bottom: 45px; left: 50px;
+  max-width: 380px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(10px);
+}
+#era-info.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+#era-fact-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#era-fact-tag::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: #00f3ff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #00f3ff;
+}
+#era-fact-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+}
+#era-fact-desc.typing::after {
+  content: ' ▍';
+  color: #00f3ff;
+  animation: blink 0.8s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* Scroll Hint - Bottom Right */
@@ -273,7 +300,7 @@ body, html {
   background: #ffffff;
 }
 
-/* Final Message - Center with Reflective Glass Card */
+/* Final Message - Center */
 #final-message {
   position: absolute;
   top: 50%; left: 50%;
@@ -282,15 +309,8 @@ body, html {
   opacity: 0;
   pointer-events: none;
   transition: opacity 2s ease;
-  padding: 45px 70px;
-  background: rgba(10, 15, 25, 0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-top: 1px solid rgba(255, 255, 255, 0.4); /* Glass reflection edge */
-  border-radius: 24px;
-  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  max-width: 85vw;
+  max-width: 800px;
+  width: 90%;
 }
 #final-message.visible {
   opacity: 1;
@@ -301,12 +321,11 @@ body, html {
   font-size: 2.8rem;
   line-height: 1.4;
   margin-bottom: 24px;
-  text-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 4px 30px rgba(0,0,0,0.9);
 }
 #final-sub {
   font-size: 0.8rem;
   letter-spacing: 0.25em;
-  color: #fff;
+  color: var(--color-muted);
   text-transform: uppercase;
-  opacity: 0.8;
 }
