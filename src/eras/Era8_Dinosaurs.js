@@ -19,7 +19,6 @@ export class Era8_Dinosaurs {
     this.clock = new THREE.Clock();
 
     this._buildTerrain();
-    this._buildPrehistoricForest();
     this._buildAsteroid();
     this._loadModels();
   }
@@ -195,88 +194,6 @@ export class Era8_Dinosaurs {
     this.group.add(this.terrain);
   }
 
-  _buildPrehistoricForest() {
-    this.forestGroup = new THREE.Group();
-    
-    // Build a high-detail arching Cycad Palm crown (12 curved palm fronds instead of a Minecraft cone!)
-    const crownGeo = new THREE.BufferGeometry();
-    const frondMeshes = [];
-    const frondMat = new THREE.MeshStandardMaterial({ 
-      color: 0x18440f, roughness: 0.5, side: THREE.DoubleSide 
-    });
-
-    // Create 12 arching palm leaves arranged radially
-    for (let i = 0; i < 12; i++) {
-      const leafGeo = new THREE.PlaneGeometry(1.8, 6.0, 2, 4);
-      // Bend leaf outward and downward like a real prehistoric palm frond
-      const pos = leafGeo.attributes.position;
-      for (let j = 0; j < pos.count; j++) {
-        const y = pos.getY(j);
-        const z = pos.getZ(j);
-        // Curve tip downwards
-        const bend = Math.pow((y + 3.0) / 6.0, 2.0) * 1.8;
-        pos.setZ(j, z - bend);
-      }
-      leafGeo.translate(0, 3.0, 0);
-      leafGeo.rotateX(Math.PI * 0.28);
-      leafGeo.rotateY((i / 12) * Math.PI * 2);
-      frondMeshes.push(leafGeo);
-    }
-    
-    // Merge leaf geometries into a single high-resolution palm crown
-    const mergedCrownGeo = BufferGeometryUtils.mergeGeometries(frondMeshes) || frondMeshes[0];
-    
-    const count = 220;
-    const trunkGeo = new THREE.CylinderGeometry(0.35, 0.7, 7, 12);
-    trunkGeo.translate(0, 3.5, 0);
-    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x382212, roughness: 0.9 });
-    
-    this.trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count);
-    this.fronds = new THREE.InstancedMesh(mergedCrownGeo, frondMat, count);
-    
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const dist  = 20 + Math.random() * 125;
-      // Keep center clearing open for T-Rex
-      if (dist < 26 && Math.random() > 0.1) continue;
-      
-      const x = Math.cos(angle) * dist;
-      const z = Math.sin(angle) * dist;
-      
-      // Calculate terrain height so trees sit firmly on hills
-      let h = 0;
-      if (dist >= 12) {
-        h = Math.sin(x * 0.025) * 4.0 + Math.cos(z * 0.08) * 1.5;
-        const dinoDist = Math.hypot(x - 5.0, z - 5.0);
-        if (dinoDist < 38.0) {
-          h *= (dinoDist - 12.0) / 26.0;
-          if (h < 0) h = 0;
-        }
-      }
-
-      dummy.position.set(x, -15 + h, z);
-      dummy.rotation.y = Math.random() * Math.PI * 2;
-      const scale = 0.7 + Math.random() * 0.6;
-      dummy.scale.set(scale, scale, scale);
-      dummy.updateMatrix();
-      
-      this.trunks.setMatrixAt(i, dummy.matrix);
-      
-      // Position crown on top of trunk
-      dummy.position.y += 6.5 * scale;
-      dummy.updateMatrix();
-      this.fronds.setMatrixAt(i, dummy.matrix);
-    }
-    
-    this.trunks.instanceMatrix.needsUpdate = true;
-    this.fronds.instanceMatrix.needsUpdate = true;
-    
-    this.forestGroup.add(this.trunks);
-    this.forestGroup.add(this.fronds);
-    this.group.add(this.forestGroup);
-  }
-
   _buildAsteroid() {
     this.asteroidGroup = new THREE.Group();
     const coreGeo = new THREE.SphereGeometry(6, 64, 64);
@@ -422,12 +339,13 @@ export class Era8_Dinosaurs {
   }
 
   getCameraPath() {
+    // Keep camera at eye level (Y = -5 to 0) instead of bottom up (Y = -15)
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(5, -5, 45),    
-      new THREE.Vector3(5, -10, 22),   
-      new THREE.Vector3(-12, -12, 12), 
+      new THREE.Vector3(5, -2, 60),    
+      new THREE.Vector3(15, -4, 30),   
+      new THREE.Vector3(0, -6, 15), 
     ]);
-    return { curve, lookAt: new THREE.Vector3(5, -10, 5) }; 
+    return { curve, lookAt: new THREE.Vector3(5, -5, 5) }; 
   }
 
   show(duration = 1.0) {
