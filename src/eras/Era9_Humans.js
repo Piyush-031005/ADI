@@ -186,19 +186,19 @@ export class Era9_Humans {
   }
 
   getCameraPath() {
-    // A buttery smooth, cinematic flight path weaving *through* the colossal 3D holograms
+    // A perfectly horizontal, cinematic flight path weaving *through* the colossal 3D holograms
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0, 160),   // Far entrance
-      new THREE.Vector3(5, -2, 120),  // Fly past Heidelbergensis
+      new THREE.Vector3(5, 0, 120),  // Fly past Heidelbergensis
       new THREE.Vector3(-5, 0, 90),   // Fly past Primitive Women
-      new THREE.Vector3(8, -5, 60),   // Fly past Greek Temple
-      new THREE.Vector3(-8, 2, 35),   // Fly past Warrior
-      new THREE.Vector3(6, -4, 10),   // Fly past Ship
-      new THREE.Vector3(-6, 2, -15),  // Fly past Tank
-      new THREE.Vector3(0, 5, -45),   // Rise up and look down at Modern Human
+      new THREE.Vector3(8, 0, 60),   // Fly past Greek Temple
+      new THREE.Vector3(-8, 0, 35),   // Fly past Warrior
+      new THREE.Vector3(6, 0, 10),   // Fly past Ship
+      new THREE.Vector3(-6, 0, -15),  // Fly past Tank
+      new THREE.Vector3(0, 0, -45),   // End at Modern Human
     ]);
-    // The camera lookAt target glides smoothly ahead of the camera
-    return { curve, lookAt: new THREE.Vector3(0, -2, -60) };
+    // The camera lookAt target glides smoothly horizontally
+    return { curve, lookAt: new THREE.Vector3(0, 0, -60) };
   }
 
   show(duration = 1.0) {
