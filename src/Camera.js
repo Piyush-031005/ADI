@@ -37,6 +37,9 @@ export class Camera {
       this._isDragging = true;
       this._lastMouse.x = e.clientX;
       this._lastMouse.y = e.clientY;
+      // Hide the drag hint as soon as the user drags for the first time
+      const dragHint = document.getElementById('drag-hint');
+      if (dragHint) dragHint.classList.add('hide');
     });
 
     window.addEventListener('mousemove', (e) => {

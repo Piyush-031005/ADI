@@ -115,6 +115,16 @@
       <div class="scroll-hint-arrow"></div>
     </div>
 
+    <!-- Drag to orbit hint -->
+    <div id="drag-hint">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="12" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <path d="M14 6 L14 22 M6 14 L22 14" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <path d="M9 9 L5 5 M19 9 L23 5 M9 19 L5 23 M19 19 L23 23" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <span class="drag-hint-text">Drag to look around</span>
+    </div>
+
     <!-- Timeline Navigation -->
     <nav id="timeline" aria-label="Cosmic Timeline Eras">
       <!-- JS generates dots + lines -->

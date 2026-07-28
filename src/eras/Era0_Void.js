@@ -2,8 +2,7 @@ import * as THREE from 'three';
 
 /**
  * Era 0 — THE VOID
- * True 3D Volumetric Environment. No 2D screens.
- * Absolute darkness with deep scattered ancient dust.
+ * True 3D Volumetric Environment. Dense golden dust fills the camera's view.
  */
 export class Era0_Void {
   constructor(experience) {
@@ -17,47 +16,37 @@ export class Era0_Void {
   }
 
   _buildVolumetricDust() {
-    // Optimized 3D particle cloud filling the scene (reduced from 30k to 5k for GPU performance)
-    const count = 5000;
+    // Dense particle cloud: camera starts at Z=80, so we fill Z range -20..140
+    const count = 8000;
     const positions = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
-    const colors = new Float32Array(count * 3);
-
-    const baseColor = new THREE.Color(0xffd700); // Bright Gold/Void accent
+    const colors    = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      // Distribute points in a massive sphere but denser at center
-      const r = 200 * Math.pow(Math.random(), 2.0) + 10;
-      const theta = Math.random() * Math.PI * 2;
-      const phi   = Math.acos(2 * Math.random() - 1);
-      
-      positions[i * 3]     = Math.sin(phi) * Math.cos(theta) * r;
-      positions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
-      positions[i * 3 + 2] = Math.cos(phi) * r;
-      
-      sizes[i] = Math.random();
+      // Fill the space directly visible to the camera
+      positions[i * 3]     = (Math.random() - 0.5) * 160;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 160;
+      positions[i * 3 + 2] = Math.random() * 160 - 20;
 
-      // Subtle color variation
-      const c = baseColor.clone().offsetHSL(0, 0, (Math.random() - 0.5) * 0.5);
-      colors[i*3] = c.r;
-      colors[i*3+1] = c.g;
-      colors[i*3+2] = c.b;
+      // Gold/amber particles with brightness variation
+      const bright = 0.5 + Math.random() * 0.5;
+      colors[i * 3]     = bright * 1.0;
+      colors[i * 3 + 1] = bright * 0.78;
+      colors[i * 3 + 2] = bright * 0.1;
     }
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
 
-    // Using standard PointsMaterial guarantees it renders perfectly on all GPUs
-    // without risking custom shaders compiling into a single black dot on certain laptops.
+    // sizeAttenuation: false = guaranteed pixel size regardless of camera distance
     const mat = new THREE.PointsMaterial({
-      size: 4.0, // Guaranteed 4 pixels wide on screen
+      size: 3.0,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8, // High base opacity so it's not pitch black
+      opacity: 1.0,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      sizeAttenuation: false // Disable attenuation so they never shrink to invisible sizes!
+      sizeAttenuation: false,
     });
 
     this.dust = new THREE.Points(geo, mat);
@@ -66,9 +55,9 @@ export class Era0_Void {
 
   getCameraPath() {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 20, 150),
-      new THREE.Vector3(30, 0, 80),
-      new THREE.Vector3(0, 0, 40),
+      new THREE.Vector3(0, 0, 80),
+      new THREE.Vector3(15, 0, 40),
+      new THREE.Vector3(0, 0, 10),
     ]);
     return { curve, lookAt: new THREE.Vector3(0, 0, 0) };
   }
@@ -76,36 +65,22 @@ export class Era0_Void {
   show(duration = 1.0) {
     this.visible = true;
     this.group.visible = true;
-    const start = performance.now();
-    const tick = () => {
-      const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.dust.material.opacity = t * 0.8;
-      if (t < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    this.dust.material.opacity = 1.0; // immediately fully visible
   }
 
   hide(duration = 0.6) {
     this.visible = false;
-    const start = performance.now();
-    const startOpacity = this.dust.material.opacity;
-    const tick = () => {
-      const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.dust.material.opacity = startOpacity * (1 - t);
-      if (t < 1) requestAnimationFrame(tick);
-      else this.group.visible = false;
-    };
-    requestAnimationFrame(tick);
+    this.group.visible = false;
   }
 
   onScrollT(t) {
-    // Pull the dust in towards the center as we approach singularity
-    const scale = 1.0 - t * 0.5;
+    const scale = 1.0 - t * 0.4;
     this.dust.scale.setScalar(scale);
   }
 
   update(time) {
     if (!this.visible) return;
-    this.dust.rotation.y = time * 0.05; // Standard rotation since vertex shader is gone
+    this.dust.rotation.y = time * 0.02;
+    this.dust.rotation.x = Math.sin(time * 0.01) * 0.05;
   }
 }
