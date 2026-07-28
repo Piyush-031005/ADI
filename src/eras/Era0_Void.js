@@ -51,13 +51,13 @@ export class Era0_Void {
     // Using standard PointsMaterial guarantees it renders perfectly on all GPUs
     // without risking custom shaders compiling into a single black dot on certain laptops.
     const mat = new THREE.PointsMaterial({
-      size: 8.0, // Massively increased size so it is undeniably visible from far away
+      size: 4.0, // Guaranteed 4 pixels wide on screen
       vertexColors: true,
       transparent: true,
       opacity: 0.8, // High base opacity so it's not pitch black
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      sizeAttenuation: true
+      sizeAttenuation: false // Disable attenuation so they never shrink to invisible sizes!
     });
 
     this.dust = new THREE.Points(geo, mat);

@@ -106,164 +106,138 @@ export class Era9_Humans {
     this.group.add(this.dust);
   }
 
-  _loadColossalEvolutionModels() {
+  async _loadColossalEvolutionModels() {
     const loader = new GLTFLoader();
     const basePath = '/models/humans/';
 
+    // Add a massive solid ground plane so no model feels like it's floating in the sky
+    const floorGeo = new THREE.PlaneGeometry(1000, 1000);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x03060a, roughness: 0.9, metalness: 0.1 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -15.1; // Slightly below the model bases
+    this.group.add(floor);
+
     const loadModelWithSpotlight = (filename, x, y, z, scale, rotY, lightColor, lightIntensity) => {
-      loader.load(basePath + filename, (gltf) => {
-        const model = gltf.scene;
-        
-        // Auto-normalize scale to make them Colossal
-        const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const targetScale = scale / maxDim;
-        model.scale.setScalar(targetScale);
+      return new Promise((resolve) => {
+        loader.load(basePath + filename, (gltf) => {
+          const model = gltf.scene;
+          
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetScale = scale / maxDim;
+          model.scale.setScalar(targetScale);
 
-        // MUST update matrix world AFTER scaling, otherwise the bounding box math is completely broken!
-        model.updateMatrixWorld(true);
+          // MUST update matrix world AFTER scaling, otherwise the bounding box math is completely broken!
+          model.updateMatrixWorld(true);
 
-        // Normalize origin so they sit perfectly on the floor (Y axis aligned)
-        const boxAfterScale = new THREE.Box3().setFromObject(model);
-        const bottomY = boxAfterScale.min.y;
-        
-        // Set all models to be perfectly aligned at Y = -15 minus their intrinsic bottom offset
-        model.position.set(x, y - (bottomY - model.position.y), z);
-        model.rotation.y = rotY;
+          const boxAfterScale = new THREE.Box3().setFromObject(model);
+          const bottomY = boxAfterScale.min.y;
+          
+          // Set all models to be perfectly aligned at Y = -15 minus their intrinsic bottom offset
+          model.position.set(x, y - (bottomY - model.position.y), z);
+          model.rotation.y = rotY;
 
-        // Ensure rich PBR material rendering
-        model.traverse((child) => {
-          if (child.isMesh) {
-            // Disabled per-model shadows to massively boost GPU performance
-            child.castShadow = false;
-            child.receiveShadow = false;
-            if (child.material) {
-              child.material.envMapIntensity = 1.0;
-              child.material.needsUpdate = true;
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = false;
+              child.receiveShadow = false;
+              if (child.material) {
+                child.material.envMapIntensity = 1.0;
+                child.material.needsUpdate = true;
+              }
             }
+          });
+
+          if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model);
+            gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+            this.mixers.push(mixer);
           }
+
+          const spotLight = new THREE.SpotLight(lightColor, lightIntensity);
+          spotLight.position.set(x + 10, y + 25, z + 15);
+          spotLight.angle = Math.PI / 4;
+          spotLight.penumbra = 0.5;
+          spotLight.decay = 1.5;
+          spotLight.distance = 100;
+          spotLight.castShadow = false;
+          
+          const target = new THREE.Object3D();
+          target.position.set(x, y, z);
+          this.group.add(target);
+          spotLight.target = target;
+          
+          this.group.add(spotLight);
+          
+          const rimLight = new THREE.PointLight(0xffffff, lightIntensity * 0.4, 40);
+          rimLight.position.set(x - 5, y - 10, z - 10);
+          this.group.add(rimLight);
+
+          this.group.add(model);
+          this.models.push(model);
+          resolve();
+        }, undefined, (e) => {
+          console.error("Error loading " + filename, e);
+          resolve(); // Resolve anyway so it doesn't block the chain
         });
-
-        if (gltf.animations && gltf.animations.length > 0) {
-          const mixer = new THREE.AnimationMixer(model);
-          gltf.animations.forEach(clip => mixer.clipAction(clip).play());
-          this.mixers.push(mixer);
-        }
-
-        // Add dramatic cinematic spotlight pointing exactly at this model
-        const spotLight = new THREE.SpotLight(lightColor, lightIntensity);
-        spotLight.position.set(x + 10, y + 25, z + 15);
-        spotLight.angle = Math.PI / 4;
-        spotLight.penumbra = 0.5;
-        spotLight.decay = 1.5;
-        spotLight.distance = 100;
-        // Shadow mapping disabled for performance
-        spotLight.castShadow = false;
-        
-        const target = new THREE.Object3D();
-        target.position.set(x, y, z);
-        this.group.add(target);
-        spotLight.target = target;
-        
-        this.group.add(spotLight);
-        
-        // Subtle rim light from below
-        const rimLight = new THREE.PointLight(0xffffff, lightIntensity * 0.4, 40);
-        rimLight.position.set(x - 5, y - 10, z - 10);
-        this.group.add(rimLight);
-
-        this.group.add(model);
-        this.models.push(model);
-      }, undefined, (e) => console.error("Error loading " + filename, e));
+      });
     };
 
-    // All models sit perfectly on the Y=-15 "floor" plane so they never float randomly.
+    const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
-    // --- STAGE 0: Dawn of Man (Z: 140 to 110) ---
-    loadModelWithSpotlight('homo_heidelbergensis.glb', -12, -15, 140, 20, Math.PI * 0.15, 0xff5500, 200);
-    loadModelWithSpotlight('women_of_primitive_tribes.glb', 12, -15, 110, 22, -Math.PI * 0.2, 0xff7700, 200);
+    // Staggered loading: Yield to the main thread between massive models to completely eliminate the 3-second UI freeze!
 
-    // --- STAGE 1: Ancient Civilizations (Z: 80 to 50) ---
-    loadModelWithSpotlight('hindu_temple.glb', -18, -15, 80, 40, Math.PI * 0.25, 0xffaa55, 300);
-    loadModelWithSpotlight('greek_temple.glb', 18, -15, 50, 35, -Math.PI * 0.2, 0xffddaa, 300);
+    // --- STAGE 0: Dawn of Man ---
+    await loadModelWithSpotlight('homo_heidelbergensis.glb', -12, -15, 140, 20, Math.PI * 0.15, 0xff5500, 200);
+    await delay(100);
+    await loadModelWithSpotlight('women_of_primitive_tribes.glb', 12, -15, 110, 22, -Math.PI * 0.2, 0xff7700, 200);
+    await delay(100);
 
-    // --- STAGE 2: Age of Empires & Discovery (Z: 20 to -10) ---
-    loadModelWithSpotlight('feathered_warrior_of_the_ancestors_3d_model.glb', -15, -15, 20, 25, Math.PI * 0.3, 0xffcc88, 250);
-    loadModelWithSpotlight('queen_annes_revenge.glb', 16, -15, -10, 30, -Math.PI * 0.3, 0x88ccff, 250);
+    // --- STAGE 1: Ancient Civilizations ---
+    await loadModelWithSpotlight('hindu_temple.glb', -18, -15, 80, 40, Math.PI * 0.25, 0xffaa55, 300);
+    await delay(100);
+    await loadModelWithSpotlight('greek_temple.glb', 18, -15, 50, 35, -Math.PI * 0.2, 0xffddaa, 300);
+    await delay(100);
 
-    // --- STAGE 3: Industrial / Modern Cities (Z: -40 to -90) ---
-    loadModelWithSpotlight('t72m1.glb', -16, -15, -40, 28, Math.PI * 0.25, 0x4488ff, 300);
-    loadModelWithSpotlight('casual_weekend_outfit.glb', 12, -15, -65, 20, -Math.PI * 0.1, 0x00f3ff, 250);
+    // --- STAGE 2: Age of Empires ---
+    await loadModelWithSpotlight('feathered_warrior_of_the_ancestors_3d_model.glb', -15, -15, 20, 25, Math.PI * 0.3, 0xffcc88, 250);
+    await delay(100);
+    await loadModelWithSpotlight('queen_annes_revenge.glb', 16, -15, -10, 30, -Math.PI * 0.3, 0x88ccff, 250);
+    await delay(100);
+
+    // --- STAGE 3: Industrial / Modern Cities ---
+    await loadModelWithSpotlight('t72m1.glb', -16, -15, -40, 28, Math.PI * 0.25, 0x4488ff, 300);
+    await delay(100);
+    await loadModelWithSpotlight('casual_weekend_outfit.glb', 12, -15, -65, 20, -Math.PI * 0.1, 0x00f3ff, 250);
+    await delay(100);
     
-    // --- Massive 360-Degree Cyber City Surround ---
-    // Instead of loading 4 different massive city files (which causes a 10+ second transition freeze),
-    // we load one high-quality city and clone it instantly in memory to surround the entire horizon!
-    loader.load(basePath + 'city.glb', (gltf) => {
-      const baseCity = gltf.scene;
-      
-      const cityScale = 120; // Massive scale
-      const box = new THREE.Box3().setFromObject(baseCity);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      const targetScale = cityScale / Math.max(size.x, size.y, size.z);
-      baseCity.scale.setScalar(targetScale);
-      baseCity.updateMatrixWorld(true);
-      
-      const bottomY = new THREE.Box3().setFromObject(baseCity).min.y;
-
-      // Ensure rich PBR material rendering without shadow casting for massive performance
-      baseCity.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = false;
-          child.receiveShadow = false;
-        }
-      });
-
-      // Clone and place 4 cities in a massive ring around the user (radius 180)
-      const radius = 180;
-      for (let i = 0; i < 4; i++) {
-        const angle = (i * Math.PI) / 2;
-        const cityClone = baseCity.clone();
-        
-        // Center the ring around the middle of the transition path (Z = 20)
-        const cx = Math.cos(angle) * radius;
-        const cz = 20 + Math.sin(angle) * radius;
-        
-        cityClone.position.set(cx, -15 - bottomY, cz);
-        
-        // Face inwards towards the center
-        cityClone.rotation.y = -angle - Math.PI / 2;
-        
-        this.group.add(cityClone);
-        this.models.push(cityClone);
-      }
-      
-      // Add a massive blue ambient glow specifically for the 360 city
-      const cityLight = new THREE.PointLight(0x0088ff, 5.0, 500);
-      cityLight.position.set(0, 50, 20);
-      this.group.add(cityLight);
-      
-    }, undefined, (e) => console.error("Error loading city", e));
+    // --- Massive 360-Degree Surround Cities (As Requested) ---
+    // Load different cities to surround the user
+    await loadModelWithSpotlight('city.glb', 0, -15, -120, 80, 0, 0x00aaff, 400); // Forward City
+    await delay(100);
+    await loadModelWithSpotlight('san_francisco_city.glb', 100, -15, -20, 100, -Math.PI/2, 0xffaa00, 400); // Right City
+    await delay(100);
+    await loadModelWithSpotlight('ccity_building_set_1.glb', -100, -15, -20, 100, Math.PI/2, 0x00ffff, 400); // Left City
   }
 
   getCameraPath() {
-    // A perfectly horizontal, cinematic flight path weaving *through* the colossal 3D holograms
+    // A perfectly horizontal, cinematic flight path weaving through the models
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0, 180),   // Far entrance
-      new THREE.Vector3(5, 0, 140),   // Fly past Heidelbergensis
-      new THREE.Vector3(-5, 0, 110),  // Fly past Primitive Women
-      new THREE.Vector3(8, 0, 80),    // Fly past Hindu Temple
-      new THREE.Vector3(-8, 0, 50),   // Fly past Greek Temple
-      new THREE.Vector3(6, 0, 20),    // Fly past Warrior
-      new THREE.Vector3(-6, 0, -10),  // Fly past Ship
-      new THREE.Vector3(5, 0, -40),   // Fly past Tank
-      new THREE.Vector3(-5, 0, -65),  // Fly past Modern Human
-      new THREE.Vector3(0, 5, -120),  // Rise up and look down at the Cyber City
+      new THREE.Vector3(0, 0, 180),   
+      new THREE.Vector3(5, 0, 140),   
+      new THREE.Vector3(-5, 0, 110),  
+      new THREE.Vector3(8, 0, 80),    
+      new THREE.Vector3(-8, 0, 50),   
+      new THREE.Vector3(6, 0, 20),    
+      new THREE.Vector3(-6, 0, -10),  
+      new THREE.Vector3(5, 0, -40),   
+      new THREE.Vector3(-5, 0, -65),  
+      new THREE.Vector3(0, 5, -100),  // Look out over the Forward City
     ]);
-    // The camera lookAt target glides smoothly horizontally
-    return { curve, lookAt: new THREE.Vector3(0, 0, -140) };
+    return { curve, lookAt: new THREE.Vector3(0, 0, -160) };
   }
 
   show(duration = 1.0) {
@@ -277,10 +251,12 @@ export class Era9_Humans {
   }
 
   onScrollT(t) {
-    // Models slowly rotate or float based on scroll to feel alive
-    this.models.forEach((model, idx) => {
-      model.position.y += Math.sin(t * Math.PI * 4 + idx) * 0.05;
-    });
+    if (!this.mixers || this.mixers.length === 0) return;
+    const scrollDelta = 0.05;
+    this.mixers.forEach(m => m.update(scrollDelta));
+    
+    // Deliberately removed model.position.y manipulation here because it caused 
+    // a cumulative float bug where models eventually drifted high into the sky!
   }
 
   update(time) {
