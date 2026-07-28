@@ -17,13 +17,13 @@ export class Era0_Void {
   }
 
   _buildVolumetricDust() {
-    // Massive 3D particle cloud filling the scene
-    const count = 30000;
+    // Optimized 3D particle cloud filling the scene (reduced from 30k to 5k for GPU performance)
+    const count = 5000;
     const positions = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     const colors = new Float32Array(count * 3);
 
-    const baseColor = new THREE.Color(0xc8a96e); // Gold/Void accent
+    const baseColor = new THREE.Color(0xffd700); // Bright Gold/Void accent
 
     for (let i = 0; i < count; i++) {
       // Distribute points in a massive sphere but denser at center
@@ -69,7 +69,8 @@ export class Era0_Void {
           p.xz = mat2(c, -s, s, c) * p.xz;
           
           vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-          gl_PointSize = (40.0 * aSize) / -mvPosition.z;
+          // Massively increased point size to compensate for lower particle count
+          gl_PointSize = (120.0 * aSize) / -mvPosition.z;
           gl_Position = projectionMatrix * mvPosition;
           
           // Fade edges
@@ -87,7 +88,8 @@ export class Era0_Void {
           if (ll > 0.5) discard;
           
           float glow = (0.5 - ll) * 2.0;
-          gl_FragColor = vec4(vColor, glow * vAlpha * uOpacity * 0.6);
+          // Drastically boosted brightness and opacity multiplier so the Void pops!
+          gl_FragColor = vec4(vColor * 1.8, glow * vAlpha * uOpacity * 2.5);
         }
       `,
       transparent: true,

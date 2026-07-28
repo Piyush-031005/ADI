@@ -35,8 +35,8 @@ export class Era11_Unknown {
   }
 
   _buildCosmicBeingOfLight() {
-    // 20,000 bioluminescent quantum particles forming an Alex Grey-inspired soaring human figure of light
-    const count = 20000;
+    // Optimized: 6,000 bioluminescent quantum particles (down from 20k) for GPU performance
+    const count = 6000;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
 
@@ -106,7 +106,8 @@ export class Era11_Unknown {
           float pulse = sin(uTime * 2.5 + p.y * 0.4 + p.x * 0.3) * 0.4;
           p += normal * pulse;
           vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
-          gl_PointSize = (160.0 / -mvPos.z);
+          // Boosted size to compensate for lower particle count
+          gl_PointSize = (350.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
@@ -237,7 +238,8 @@ export class Era11_Unknown {
   }
 
   _buildCosmicDustStreams() {
-    const count = 8000;
+    // Optimized down to 3000 from 8000
+    const count = 3000;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
     
@@ -259,8 +261,9 @@ export class Era11_Unknown {
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     
+    // Increased size to compensate for lower count
     this.dust = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 0.8, vertexColors: true, transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending
+      size: 1.5, vertexColors: true, transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending
     }));
     this.group.add(this.dust);
   }

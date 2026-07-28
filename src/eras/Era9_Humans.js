@@ -24,12 +24,22 @@ export class Era9_Humans {
   }
 
   _buildCinematicEnvironment() {
-    // 1. Dramatic Lighting
-    const ambient = new THREE.AmbientLight(0x0a1526, 2.0); // Deep cinematic blue ambient
+    // 1. Dramatic Lighting (Boosted ambient to avoid pitch blackness)
+    const ambient = new THREE.AmbientLight(0x2a3546, 4.0); // Brighter cinematic ambient
     this.group.add(ambient);
 
-    // 2. Swirling DNA / Neural Particle Matrix (Replaces flat terrain)
-    const count = 15000;
+    // Add a deep cosmic background sphere so the void isn't pitch black
+    const bgGeo = new THREE.SphereGeometry(250, 32, 32);
+    const bgMat = new THREE.MeshBasicMaterial({
+      color: 0x050a12,
+      side: THREE.BackSide,
+      fog: false
+    });
+    this.bgSphere = new THREE.Mesh(bgGeo, bgMat);
+    this.group.add(this.bgSphere);
+
+    // 2. Swirling DNA / Neural Particle Matrix (Optimized from 15k to 4k for GPU)
+    const count = 4000;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
 
@@ -76,7 +86,8 @@ export class Era9_Humans {
           p.x += sin(p.z * 0.05 + uTime) * 2.0;
           p.y += cos(p.z * 0.05 + uTime) * 2.0;
           vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
-          gl_PointSize = (40.0 / -mvPos.z);
+          // Boosted size to compensate for lower particle count
+          gl_PointSize = (90.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
@@ -87,7 +98,8 @@ export class Era9_Humans {
           float dist = length(xy);
           if (dist > 0.5) discard;
           float glow = smoothstep(0.5, 0.0, dist);
-          gl_FragColor = vec4(vColor * glow * 1.5, glow * 0.8);
+          // Boosted particle brightness
+          gl_FragColor = vec4(vColor * glow * 2.0, glow * 0.9);
         }
       `,
       transparent: true,
@@ -122,8 +134,9 @@ export class Era9_Humans {
         // Ensure rich PBR material rendering
         model.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            // Disabled per-model shadows to massively boost GPU performance
+            child.castShadow = false;
+            child.receiveShadow = false;
             if (child.material) {
               child.material.envMapIntensity = 1.0;
               child.material.needsUpdate = true;
@@ -144,7 +157,8 @@ export class Era9_Humans {
         spotLight.penumbra = 0.5;
         spotLight.decay = 1.5;
         spotLight.distance = 100;
-        spotLight.castShadow = true;
+        // Shadow mapping disabled for performance
+        spotLight.castShadow = false;
         
         const target = new THREE.Object3D();
         target.position.set(x, y, z);
@@ -154,7 +168,7 @@ export class Era9_Humans {
         this.group.add(spotLight);
         
         // Subtle rim light from below
-        const rimLight = new THREE.PointLight(0xffffff, lightIntensity * 0.3, 40);
+        const rimLight = new THREE.PointLight(0xffffff, lightIntensity * 0.4, 40);
         rimLight.position.set(x - 5, y - 10, z - 10);
         this.group.add(rimLight);
 
