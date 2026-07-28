@@ -46,57 +46,18 @@ export class Era0_Void {
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('aSize',    new THREE.Float32BufferAttribute(sizes, 1));
-    geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-    const mat = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        uOpacity: { value: 0 },
-      },
-      vertexShader: `
-        uniform float uTime;
-        attribute float aSize;
-        varying vec3 vColor;
-        varying float vAlpha;
-        void main() {
-          vColor = color;
-          vec3 p = position;
-          // Very slow orbit
-          float angle = uTime * 0.05 / (length(p) * 0.05 + 1.0);
-          float s = sin(angle);
-          float c = cos(angle);
-          p.xz = mat2(c, -s, s, c) * p.xz;
-          
-          vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-          // Massively increased point size to compensate for lower particle count
-          gl_PointSize = (120.0 * aSize) / -mvPosition.z;
-          gl_Position = projectionMatrix * mvPosition;
-          
-          // Fade edges
-          vAlpha = smoothstep(200.0, 50.0, length(position));
-        }
-      `,
-      fragmentShader: `
-        uniform float uOpacity;
-        varying vec3 vColor;
-        varying float vAlpha;
-        void main() {
-          // Circular particle
-          vec2 xy = gl_PointCoord.xy - vec2(0.5);
-          float ll = length(xy);
-          if (ll > 0.5) discard;
-          
-          float glow = (0.5 - ll) * 2.0;
-          // Forcefully boosted brightness and base opacity so the Void pops immediately!
-          float finalAlpha = (glow + 0.3) * vAlpha * (uOpacity * 4.0 + 0.5);
-          gl_FragColor = vec4(vColor * 3.5, finalAlpha);
-        }
-      `,
+    // Using standard PointsMaterial guarantees it renders perfectly on all GPUs
+    // without risking custom shaders compiling into a single black dot on certain laptops.
+    const mat = new THREE.PointsMaterial({
+      size: 1.5, // Large enough to be instantly visible
+      vertexColors: true,
       transparent: true,
+      opacity: 0.8, // High base opacity so it's not pitch black
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      vertexColors: true
+      sizeAttenuation: true
     });
 
     this.dust = new THREE.Points(geo, mat);
@@ -118,7 +79,7 @@ export class Era0_Void {
     const start = performance.now();
     const tick = () => {
       const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.dust.material.uniforms.uOpacity.value = t;
+      this.dust.material.opacity = t * 0.8;
       if (t < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -127,10 +88,10 @@ export class Era0_Void {
   hide(duration = 0.6) {
     this.visible = false;
     const start = performance.now();
-    const startOpacity = this.dust.material.uniforms.uOpacity.value;
+    const startOpacity = this.dust.material.opacity;
     const tick = () => {
       const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.dust.material.uniforms.uOpacity.value = startOpacity * (1 - t);
+      this.dust.material.opacity = startOpacity * (1 - t);
       if (t < 1) requestAnimationFrame(tick);
       else this.group.visible = false;
     };
@@ -145,6 +106,6 @@ export class Era0_Void {
 
   update(time) {
     if (!this.visible) return;
-    this.dust.material.uniforms.uTime.value = time;
+    this.dust.rotation.y = time * 0.05; // Standard rotation since vertex shader is gone
   }
 }

@@ -154,7 +154,12 @@ export class Era9_Humans {
         const targetScale = scale / maxDim;
         model.scale.setScalar(targetScale);
 
-        model.position.set(x, y, z);
+        // Normalize origin so they sit perfectly on the floor (Y axis aligned)
+        const center = box.getCenter(new THREE.Vector3());
+        const bottomY = box.min.y * targetScale;
+        
+        // Set all models to be perfectly aligned at Y = -10 (or user-defined y) minus their intrinsic bottom offset
+        model.position.set(x, y - bottomY, z);
         model.rotation.y = rotY;
 
         // Ensure rich PBR material rendering
@@ -203,42 +208,42 @@ export class Era9_Humans {
       }, undefined, (e) => console.error("Error loading " + filename, e));
     };
 
-    // --- STAGE 0: Dawn of Man (Z: 120 to 100) ---
-    // Floating colossal primitive hominid lit by warm fire light
-    loadModelWithSpotlight('homo_heidelbergensis.glb', -12, -5, 120, 20, Math.PI * 0.15, 0xff5500, 200);
-    loadModelWithSpotlight('women_of_primitive_tribes.glb', 12, -8, 100, 22, -Math.PI * 0.2, 0xff7700, 200);
+    // All models sit perfectly on the Y=-15 "floor" plane so they never float randomly.
 
-    // --- STAGE 1: Ancient Civilizations (Z: 70 to 50) ---
-    // Massive majestic Greek Temple illuminated by god rays (bright gold/white)
-    loadModelWithSpotlight('greek_temple.glb', -18, -12, 70, 35, Math.PI * 0.2, 0xffddaa, 300);
-    // Colossal Feathered Warrior standing guard
-    loadModelWithSpotlight('feathered_warrior_of_the_ancestors_3d_model.glb', 15, -15, 50, 25, -Math.PI * 0.3, 0xffcc88, 250);
+    // --- STAGE 0: Dawn of Man (Z: 140 to 110) ---
+    loadModelWithSpotlight('homo_heidelbergensis.glb', -12, -15, 140, 20, Math.PI * 0.15, 0xff5500, 200);
+    loadModelWithSpotlight('women_of_primitive_tribes.glb', 12, -15, 110, 22, -Math.PI * 0.2, 0xff7700, 200);
 
-    // --- STAGE 2: Age of Discovery & Industrial Conflict (Z: 20 to 0) ---
-    // Ghostly massive galleon ship 
-    loadModelWithSpotlight('queen_annes_revenge.glb', -16, -10, 20, 30, Math.PI * 0.3, 0x88ccff, 250);
-    // Imposing brutalist tank lit by harsh cool light
-    loadModelWithSpotlight('t72m1.glb', 16, -12, 0, 28, -Math.PI * 0.25, 0x4488ff, 300);
+    // --- STAGE 1: Ancient Civilizations (Z: 80 to 50) ---
+    loadModelWithSpotlight('hindu_temple.glb', -18, -15, 80, 40, Math.PI * 0.25, 0xffaa55, 300);
+    loadModelWithSpotlight('greek_temple.glb', 18, -15, 50, 35, -Math.PI * 0.2, 0xffddaa, 300);
 
-    // --- STAGE 3: Modern Era (Z: -30) ---
-    // Modern human silhouetted against glowing cyan/neon light
-    loadModelWithSpotlight('casual_weekend_outfit.glb', 0, -15, -30, 22, 0, 0x00f3ff, 250);
+    // --- STAGE 2: Age of Empires & Discovery (Z: 20 to -10) ---
+    loadModelWithSpotlight('feathered_warrior_of_the_ancestors_3d_model.glb', -15, -15, 20, 25, Math.PI * 0.3, 0xffcc88, 250);
+    loadModelWithSpotlight('queen_annes_revenge.glb', 16, -15, -10, 30, -Math.PI * 0.3, 0x88ccff, 250);
+
+    // --- STAGE 3: Industrial / Modern Cities (Z: -40 to -90) ---
+    loadModelWithSpotlight('t72m1.glb', -16, -15, -40, 28, Math.PI * 0.25, 0x4488ff, 300);
+    loadModelWithSpotlight('casual_weekend_outfit.glb', 12, -15, -65, 20, -Math.PI * 0.1, 0x00f3ff, 250);
+    loadModelWithSpotlight('city.glb', 0, -20, -100, 60, 0, 0x00aaff, 400); // Massive city in the center distance
   }
 
   getCameraPath() {
     // A perfectly horizontal, cinematic flight path weaving *through* the colossal 3D holograms
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0, 160),   // Far entrance
-      new THREE.Vector3(5, 0, 120),  // Fly past Heidelbergensis
-      new THREE.Vector3(-5, 0, 90),   // Fly past Primitive Women
-      new THREE.Vector3(8, 0, 60),   // Fly past Greek Temple
-      new THREE.Vector3(-8, 0, 35),   // Fly past Warrior
-      new THREE.Vector3(6, 0, 10),   // Fly past Ship
-      new THREE.Vector3(-6, 0, -15),  // Fly past Tank
-      new THREE.Vector3(0, 0, -45),   // End at Modern Human
+      new THREE.Vector3(0, 0, 180),   // Far entrance
+      new THREE.Vector3(5, 0, 140),   // Fly past Heidelbergensis
+      new THREE.Vector3(-5, 0, 110),  // Fly past Primitive Women
+      new THREE.Vector3(8, 0, 80),    // Fly past Hindu Temple
+      new THREE.Vector3(-8, 0, 50),   // Fly past Greek Temple
+      new THREE.Vector3(6, 0, 20),    // Fly past Warrior
+      new THREE.Vector3(-6, 0, -10),  // Fly past Ship
+      new THREE.Vector3(5, 0, -40),   // Fly past Tank
+      new THREE.Vector3(-5, 0, -65),  // Fly past Modern Human
+      new THREE.Vector3(0, 5, -120),  // Rise up and look down at the Cyber City
     ]);
     // The camera lookAt target glides smoothly horizontally
-    return { curve, lookAt: new THREE.Vector3(0, 0, -60) };
+    return { curve, lookAt: new THREE.Vector3(0, 0, -140) };
   }
 
   show(duration = 1.0) {
