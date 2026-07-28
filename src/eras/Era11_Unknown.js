@@ -50,35 +50,35 @@ export class Era11_Unknown {
       let x = 0, y = 0, z = 0;
       let chosenCol = cCyan;
 
-      if (t < 0.20) { // Crown Chakra & Glowing Head
+      if (t < 0.15) { // Head (Perfect Sphere)
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.random() * Math.PI;
-        const r = Math.random() * 3.5;
+        const r = Math.random() * 2.5;
         x = Math.sin(phi) * Math.cos(theta) * r;
-        y = 12 + Math.cos(phi) * r;
+        y = 15 + Math.cos(phi) * r;
         z = Math.sin(phi) * Math.sin(theta) * r;
         chosenCol = Math.random() > 0.3 ? cWhite : cCyan;
-      } else if (t < 0.65) { // Torso & Neural Spine Matrix
-        const h = (Math.random() - 0.5) * 16;
-        const r = (1.0 - Math.abs(h - 2) * 0.07) * (2.2 + Math.random() * 2.5);
+      } else if (t < 0.55) { // Torso (V-shape tapering down)
+        const h = (Math.random()) * 14; 
+        const r = (1.0 - (h / 14.0) * 0.5) * (1.5 + Math.random() * 2.5); // Tapers at waist
         const theta = Math.random() * Math.PI * 2;
         x = Math.cos(theta) * r;
-        y = h + 2;
-        z = Math.sin(theta) * r * 0.7;
+        y = 13 - h; // From neck (13) down to waist (-1)
+        z = Math.sin(theta) * r * 0.6; // Flatter chest
         chosenCol = Math.random() > 0.4 ? cGold : cPink;
-      } else if (t < 0.85) { // Outstretched Cosmic Stardust Wings / Arms
+      } else if (t < 0.75) { // Arms (hanging down naturally)
         const side = Math.random() > 0.5 ? 1 : -1;
-        const armL = Math.random() * 16;
-        x = side * (3.0 + armL);
-        y = 6 - armL * 0.25 + (Math.random() - 0.5) * 2.5;
-        z = (Math.random() - 0.5) * 3.0;
+        const armL = Math.random() * 12;
+        x = side * (4.0 + armL * 0.2) + (Math.random() - 0.5) * 1.5;
+        y = 12 - armL; // Shoulders at 12, hands at 0
+        z = (Math.random() - 0.5) * 1.5;
         chosenCol = cCyan;
-      } else { // Trailing Energy Streams / Legs
-        const side = Math.random() > 0.5 ? 2.2 : -2.2;
-        const legL = Math.random() * 16;
-        x = side + (Math.random() - 0.5) * 2.2;
-        y = -6 - legL;
-        z = -legL * 0.4 + (Math.random() - 0.5) * 2.5;
+      } else { // Legs (Straight down)
+        const side = Math.random() > 0.5 ? 1.5 : -1.5;
+        const legL = Math.random() * 15;
+        x = side + (Math.random() - 0.5) * 1.8;
+        y = -1 - legL; // Waist at -1, feet at -16
+        z = (Math.random() - 0.5) * 1.8;
         chosenCol = Math.random() > 0.5 ? cGold : cCyan;
       }
 
@@ -296,10 +296,10 @@ export class Era11_Unknown {
 
   getCameraPath() {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 5, 85),
+      new THREE.Vector3(0, 2, 85),
       new THREE.Vector3(-10, 2, 55),
-      new THREE.Vector3(10, -2, 35),
-      new THREE.Vector3(0, 1, 22), 
+      new THREE.Vector3(10, 2, 35),
+      new THREE.Vector3(0, 2, 22), 
     ]);
     return { curve, lookAt: new THREE.Vector3(0, 2, 0) };
   }
