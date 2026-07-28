@@ -26,6 +26,7 @@ export class Era11_Unknown {
     this._buildRelativisticRings();
     this._buildCosmicDustStreams();
     this._loadSpaceModel();
+    this._buildSpecimenFibers(); // SPECIMEN-style fiber overlay
 
     const ambient = new THREE.AmbientLight(0xffffff, 2.0);
     this.group.add(ambient);
@@ -106,8 +107,8 @@ export class Era11_Unknown {
           float pulse = sin(uTime * 2.5 + p.y * 0.4 + p.x * 0.3) * 0.4;
           p += normal * pulse;
           vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
-          // Boosted size to compensate for lower particle count
-          gl_PointSize = (350.0 / -mvPos.z);
+          // Reduced size: 80.0 instead of 350.0 so particles don't look blocky
+          gl_PointSize = (80.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
@@ -307,14 +308,97 @@ export class Era11_Unknown {
     return { curve, lookAt: new THREE.Vector3(0, 2, 0) };
   }
 
+  _buildSpecimenFibers() {
+    // SPECIMEN-style 2D canvas fiber system — glowing nerve/energy lines
+    this.fiberCanvas = document.createElement('canvas');
+    this.fiberCanvas.style.cssText = `
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    `;
+    document.body.appendChild(this.fiberCanvas);
+    this.fiberCtx   = this.fiberCanvas.getContext('2d');
+    this._fiberTime = 0;
+    this._fibers    = [];
+    this._resizeFibers();
+    window.addEventListener('resize', () => this._resizeFibers());
+  }
+
+  _resizeFibers() {
+    this.fiberCanvas.width  = window.innerWidth;
+    this.fiberCanvas.height = window.innerHeight;
+    this._fibers = [];
+    const count = 180;
+    for (let i = 0; i < count; i++) {
+      const isRed = Math.random() < 0.38;
+      this._fibers.push({
+        angle:    Math.random() * Math.PI * 2,
+        radius:   60 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.55,
+        cpOffset: (Math.random() - 0.5) * 260,
+        speed:    0.15 + Math.random() * 0.9,
+        phase:    Math.random() * Math.PI * 2,
+        isRed,
+        lineWidth: 0.25 + Math.random() * 1.4,
+        opacity:   0.03 + Math.random() * 0.22,
+      });
+    }
+  }
+
+  _drawFibers(time) {
+    const ctx = this.fiberCtx;
+    const W = this.fiberCanvas.width;
+    const H = this.fiberCanvas.height;
+    const cx = W / 2, cy = H / 2;
+
+    // Trailing fade so we get motion blur
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (const f of this._fibers) {
+      const t = time * f.speed + f.phase;
+      const angle = f.angle + Math.sin(t * 0.35) * 0.4;
+      const r     = f.radius + Math.sin(t * 0.65) * 40;
+      const ex = cx + Math.cos(angle) * r;
+      const ey = cy + Math.sin(angle) * r;
+
+      const cpA = angle + f.cpOffset * 0.004;
+      const cpR = r * 0.48;
+      const cpx = cx + Math.cos(cpA) * cpR;
+      const cpy = cy + Math.sin(cpA) * cpR;
+
+      const col = f.isRed
+        ? `rgba(230,55,55,${f.opacity})`
+        : `rgba(60,140,255,${f.opacity})`;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+      ctx.strokeStyle = col;
+      ctx.lineWidth   = f.lineWidth;
+      ctx.stroke();
+    }
+  }
+
   show(duration = 1.0) {
     this.visible = true;
     this.group.visible = true;
+    if (this.fiberCanvas) this.fiberCanvas.style.opacity = '1';
   }
 
   hide(duration = 0.6) {
     this.visible = false;
     this.group.visible = false;
+    if (this.fiberCanvas) {
+      this.fiberCanvas.style.opacity = '0';
+      // Clear the canvas when hidden so it doesn't bleed into other eras
+      setTimeout(() => {
+        if (this.fiberCtx) this.fiberCtx.clearRect(0, 0, this.fiberCanvas.width, this.fiberCanvas.height);
+      }, 1200);
+    }
   }
 
   onScrollT(t) {
@@ -347,5 +431,10 @@ export class Era11_Unknown {
     if (this.dust) this.dust.rotation.y = time * -0.04;
     this.mixers.forEach(m => m.update(delta));
     if (this.spaceModel) this.spaceModel.rotation.y = time * 0.03;
+
+    // SPECIMEN fiber animation
+    if (this.fiberCanvas && this.fiberCanvas.style.opacity !== '0') {
+      this._drawFibers(time);
+    }
   }
 }

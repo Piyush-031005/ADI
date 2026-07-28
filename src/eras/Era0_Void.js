@@ -2,9 +2,8 @@ import * as THREE from 'three';
 
 /**
  * Era 0 — THE VOID
- * Deep space: pure black with tiny, soft, barely-visible dust motes.
- * Inspired by real void imagery — NOT colorful, NOT many.
- * Also renders a 2D fiber/energy system on a canvas overlay for cinematic quality.
+ * Black space with fine round silver dust that CONVERGES toward the center
+ * as the user scrolls — visually "collecting" into a singularity.
  */
 export class Era0_Void {
   constructor(experience) {
@@ -14,153 +13,57 @@ export class Era0_Void {
     this.group.visible = false;
     this.exp.scene.add(this.group);
 
-    this._buildStarField();
-    this._buildFiberCanvas();
+    this._buildRoundDust();
+    this._originalPositions = null;
   }
 
-  _buildStarField() {
-    // --- Tiny, barely-visible silver-white dust motes (real void feel) ---
-    const count = 4000;
-    const positions = new Float32Array(count * 3);
-    const colors    = new Float32Array(count * 3);
+  _makeRoundSprite() {
+    // Round soft-glow sprite texture — guarantees no Minecraft squares
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0,    'rgba(255,255,255,1)');
+    g.addColorStop(0.25, 'rgba(200,220,255,0.85)');
+    g.addColorStop(0.6,  'rgba(140,170,255,0.3)');
+    g.addColorStop(1.0,  'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+
+  _buildRoundDust() {
+    const count = 5000;
+    this._posArray = new Float32Array(count * 3); // store originals for convergence
 
     for (let i = 0; i < count; i++) {
-      // Fill camera-view box: camera at Z=80, looking toward Z=0
-      positions[i * 3]     = (Math.random() - 0.5) * 200;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
-      positions[i * 3 + 2] = Math.random() * 180 - 10;
+      // Spherical distribution — void fills all around the camera
+      const r = 20 + Math.pow(Math.random(), 0.5) * 130;
+      const theta = Math.random() * Math.PI * 2;
+      const phi   = Math.acos(2 * Math.random() - 1);
 
-      // Silver/white only — no rainbow, this is the VOID (empty space)
-      const brightness = 0.15 + Math.random() * 0.6; // mostly dim, some bright
-      const tint = Math.random() > 0.85 ? 0.85 : 1.0; // occasional slight blue tint
-      colors[i * 3]     = brightness * tint;
-      colors[i * 3 + 1] = brightness * tint;
-      colors[i * 3 + 2] = brightness;
+      this._posArray[i * 3]     = Math.sin(phi) * Math.cos(theta) * r;
+      this._posArray[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
+      this._posArray[i * 3 + 2] = Math.cos(phi) * r;
     }
 
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
-
-    // Use a circular sprite texture for round (non-square) particles
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 32;
-    const ctx = canvas.getContext('2d');
-    const grd = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-    grd.addColorStop(0,    'rgba(255,255,255,1)');
-    grd.addColorStop(0.3,  'rgba(200,220,255,0.8)');
-    grd.addColorStop(1.0,  'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 32, 32);
-    const texture = new THREE.CanvasTexture(canvas);
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(this._posArray.slice(), 3));
 
     const mat = new THREE.PointsMaterial({
-      size: 0.8,              // Very small world-space size
-      vertexColors: true,
+      size: 1.8,
+      color: 0xc8d8ff,          // cool silver-blue, not rainbow
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.75,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      sizeAttenuation: true,  // Particles scale with distance (natural depth)
-      map: texture,           // Round sprite — no Minecraft squares!
+      sizeAttenuation: true,
+      map: this._makeRoundSprite(),
       alphaTest: 0.01,
     });
 
     this.dust = new THREE.Points(geo, mat);
     this.group.add(this.dust);
-  }
-
-  _buildFiberCanvas() {
-    // 2D canvas overlay — SPECIMEN-style glowing fiber lines
-    this.fiberCanvas = document.createElement('canvas');
-    this.fiberCanvas.style.cssText = `
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      pointer-events: none;
-      z-index: 2;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    `;
-    document.body.appendChild(this.fiberCanvas);
-    this.fiberCtx = this.fiberCanvas.getContext('2d');
-    this._resizeFiberCanvas();
-
-    // Generate fibers
-    this._fibers = [];
-    this._initFibers();
-    this._fiberTime = 0;
-
-    window.addEventListener('resize', () => this._resizeFiberCanvas());
-  }
-
-  _resizeFiberCanvas() {
-    this.fiberCanvas.width  = window.innerWidth;
-    this.fiberCanvas.height = window.innerHeight;
-    this._initFibers();
-  }
-
-  _initFibers() {
-    this._fibers = [];
-    const cx = window.innerWidth  / 2;
-    const cy = window.innerHeight / 2;
-    const count = 120;
-
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 80 + Math.random() * Math.min(cx, cy) * 0.6;
-      const isRed = Math.random() < 0.35;
-
-      this._fibers.push({
-        angle,
-        radius,
-        cpOffset: (Math.random() - 0.5) * 200,
-        speed: 0.2 + Math.random() * 0.8,
-        phase: Math.random() * Math.PI * 2,
-        isRed,
-        lineWidth: 0.3 + Math.random() * 1.2,
-        opacity: 0.04 + Math.random() * 0.18,
-      });
-    }
-  }
-
-  _drawFibers(time) {
-    if (!this.fiberCtx) return;
-    const ctx = this.fiberCtx;
-    const W = this.fiberCanvas.width;
-    const H = this.fiberCanvas.height;
-    const cx = W / 2;
-    const cy = H / 2;
-
-    // Fade trail
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.fillRect(0, 0, W, H);
-
-    for (const f of this._fibers) {
-      const t = time * f.speed + f.phase;
-      const angle = f.angle + Math.sin(t * 0.4) * 0.3;
-      const r = f.radius + Math.sin(t * 0.7) * 30;
-
-      const ex = cx + Math.cos(angle) * r;
-      const ey = cy + Math.sin(angle) * r;
-
-      // Control point for quadratic bezier
-      const cpAngle = angle + f.cpOffset * 0.005;
-      const cpR = r * 0.5;
-      const cpx = cx + Math.cos(cpAngle) * cpR;
-      const cpy = cy + Math.sin(cpAngle) * cpR;
-
-      const color = f.isRed
-        ? `rgba(220,60,60,${f.opacity})`
-        : `rgba(80,140,255,${f.opacity})`;
-
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = f.lineWidth;
-      ctx.stroke();
-    }
   }
 
   getCameraPath() {
@@ -172,33 +75,41 @@ export class Era0_Void {
     return { curve, lookAt: new THREE.Vector3(0, 0, 0) };
   }
 
-  show(duration = 1.0) {
+  show() {
     this.visible = true;
     this.group.visible = true;
-    this.dust.material.opacity = 0.9;
-    if (this.fiberCanvas) this.fiberCanvas.style.opacity = '1';
+    this.dust.material.opacity = 0.75;
   }
 
-  hide(duration = 0.6) {
+  hide() {
     this.visible = false;
     this.group.visible = false;
-    if (this.fiberCanvas) this.fiberCanvas.style.opacity = '0';
-    // Clear fiber canvas
-    if (this.fiberCtx) {
-      this.fiberCtx.clearRect(0, 0, this.fiberCanvas.width, this.fiberCanvas.height);
-    }
   }
 
   onScrollT(t) {
-    // Particles converge toward center as we approach Big Bang
-    const scale = 1.0 - t * 0.4;
-    this.dust.scale.setScalar(scale);
+    // CONVERGENCE: pull every particle toward (0,0,0) based on scroll
+    // At t=0: all particles at original positions
+    // At t=1: all particles collapsed toward origin (becoming the singularity!)
+    const pos = this.dust.geometry.attributes.position;
+    const src = this._posArray;
+    const ease = t * t; // quadratic ease-in for dramatic effect
+
+    for (let i = 0; i < pos.count; i++) {
+      const ox = src[i * 3];
+      const oy = src[i * 3 + 1];
+      const oz = src[i * 3 + 2];
+      pos.setXYZ(i, ox * (1 - ease), oy * (1 - ease), oz * (1 - ease));
+    }
+    pos.needsUpdate = true;
+
+    // Fade opacity slightly as they collapse
+    this.dust.material.opacity = 0.75 * (1 - ease * 0.6);
   }
 
   update(time) {
     if (!this.visible) return;
-    this.dust.rotation.y = time * 0.015;
-    this._fiberTime = time;
-    this._drawFibers(time);
+    // Slow rotation gives the Void a breathing, living quality
+    this.dust.rotation.y = time * 0.012;
+    this.dust.rotation.x = Math.sin(time * 0.008) * 0.04;
   }
 }
