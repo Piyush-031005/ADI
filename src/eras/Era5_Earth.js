@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 /**
  * Era 5 — EARTH (Award-Winning 4K Photorealistic Earth GLB Model)
  * Replaces old procedural shader with user-provided high-poly 4K earth.glb model.
- * Features 3D atmosphere glow, realistic lighting, and Moon system.
+ * Features realistic lighting, Moon system, and removed the sky blue ring as requested.
  */
 export class Era5_Earth {
   constructor(experience) {
@@ -16,7 +16,6 @@ export class Era5_Earth {
 
     this.mixers = [];
     this._loadEarthModel();
-    this._buildAtmosphereGlow();
     this._buildMoon();
     this._buildStarfield();
 
@@ -67,44 +66,6 @@ export class Era5_Earth {
         this.exp.renderer.instance.compile(this.earthModel, this.exp.camera.instance);
       }
     }, undefined, (e) => console.error("Error loading earth.glb:", e));
-  }
-
-  _buildAtmosphereGlow() {
-    // Photorealistic Blue Atmosphere Halo
-    const atmoGeo = new THREE.SphereGeometry(2.7, 64, 64);
-    const atmoMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 }
-      },
-      vertexShader: `
-        varying vec3 vNormal;
-        varying vec3 vViewPosition;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-          vViewPosition = -mvPos.xyz;
-          gl_Position = projectionMatrix * mvPos;
-        }
-      `,
-      fragmentShader: `
-        uniform float uTime;
-        varying vec3 vNormal;
-        varying vec3 vViewPosition;
-        void main() {
-          vec3 viewDir = normalize(vViewPosition);
-          float fresnel = 1.0 - clamp(dot(viewDir, vNormal), 0.0, 1.0);
-          float glow = pow(fresnel, 2.5);
-          vec3 col = mix(vec3(0.1, 0.5, 1.0), vec3(0.4, 0.8, 1.0), fresnel);
-          gl_FragColor = vec4(col * 2.0, glow * 0.85);
-        }
-      `,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.BackSide
-    });
-    this.atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-    this.group.add(this.atmosphere);
   }
 
   _buildMoon() {
@@ -169,9 +130,6 @@ export class Era5_Earth {
 
     if (this.earthModel) {
       this.earthModel.rotation.y = time * 0.05;
-    }
-    if (this.atmosphere) {
-      this.atmosphere.rotation.y = time * 0.05;
     }
     if (this.moon) {
       this.moon.rotation.y = time * 0.03;
