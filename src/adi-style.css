@@ -245,19 +245,19 @@ body, html {
   background: linear-gradient(to bottom, var(--color-muted) 0%, transparent 100%);
 }
 
-/* Drag to orbit hint - Bottom Left */
+/* Drag to orbit hint - Top Right (visible, not overlapping anything) */
 #drag-hint {
   position: absolute;
-  bottom: 50px; left: 50px;
+  top: 32px; right: 140px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   opacity: 0;
-  transition: opacity 1.5s ease;
   animation: drag-hint-fadein 1s ease 3s forwards;
 }
 #drag-hint.hide {
   opacity: 0 !important;
+  transition: opacity 0.5s;
   pointer-events: none;
 }
 @keyframes drag-hint-fadein {
@@ -265,10 +265,10 @@ body, html {
   to   { opacity: 1; }
 }
 .drag-hint-text {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: rgba(255,255,255,0.45);
 }
 
 /* Timeline - Right Side */

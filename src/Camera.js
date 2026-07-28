@@ -73,6 +73,12 @@ export class Camera {
     this.curve      = path.curve;
     this.lookAtPath = path.lookAt;
     
+    // CRITICAL: Reset orbit angle on every era transition.
+    // Without this, drag tilt from era 8 carries into era 9,
+    // making the camera start underground or overhead!
+    this._orbitAngle.x = 0;
+    this._orbitAngle.y = 0;
+    
     if (isForward) {
       this.curveTargetT = 0;
       this.curveT = 0;
