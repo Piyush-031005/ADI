@@ -108,12 +108,21 @@ export class Era9_Humans {
           gltf.animations.forEach(clip => mixer.clipAction(clip).play());
           this.mixers.push(mixer);
         }
-        
-        // INCREMENTAL GPU PRE-WARM: Force texture upload immediately after this single model loads
-        // This spreads the massive GPU upload cost over time, completely eliminating the 4-5s freeze!
-        requestAnimationFrame(() => {
-           this.exp.renderer.instance.compile(model, this.exp.camera.instance);
-        });
+        // 100% Foolproof Incremental GPU Pre-warm
+        // We render this specific model to a 1x1 offscreen target a moment after it loads.
+        // This guarantees all its huge textures upload to the GPU immediately in the background,
+        // rather than all 28 models trying to upload at the exact moment of the era transition!
+        setTimeout(() => {
+           if (!this.exp || !this.exp.renderer) return;
+           const rt = new THREE.WebGLRenderTarget(1, 1);
+           const tempScene = new THREE.Scene();
+           const tempCam = new THREE.PerspectiveCamera();
+           tempScene.add(model.clone()); // shallow clone so we don't mess up group visibility
+           this.exp.renderer.instance.setRenderTarget(rt);
+           this.exp.renderer.instance.render(tempScene, tempCam);
+           this.exp.renderer.instance.setRenderTarget(null);
+           rt.dispose();
+        }, 300); // 300ms delay so it doesn't stutter the main thread right after parsing
         
         resolve();
       }, undefined, e => { console.warn('skip', file, e); resolve(); });

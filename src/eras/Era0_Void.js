@@ -45,12 +45,12 @@ export class Era0_Void {
       const gz  = (Math.sqrt(-2.0 * Math.log(Math.max(1e-6, Math.random()))) *
                    Math.cos(2 * Math.PI * Math.random()));
 
-      // Spread: sigma=25 so most particles are in ±50 units of center
-      // Camera at Z=80 looking toward Z=0 — the cluster fills the view perfectly
-      const sigma = 28;
+      // Spread: sigma=8 so particles form a tight, dense cluster in the middle
+      // Camera is at Z=80, cluster is around Z=20.
+      const sigma = 8;
       this._posArray[i * 3]     = gx * sigma;
       this._posArray[i * 3 + 1] = gy * sigma;
-      this._posArray[i * 3 + 2] = gz * sigma * 0.7 + 20; // slight Z offset toward camera
+      this._posArray[i * 3 + 2] = gz * sigma * 0.7 + 20; // Z offset toward camera
     }
 
     const geo = new THREE.BufferGeometry();
