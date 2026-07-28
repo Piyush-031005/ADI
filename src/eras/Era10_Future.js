@@ -38,19 +38,27 @@ export class Era10_Future {
   }
 
   // Forces the model to be bright and emissive regardless of missing PBR maps
-  _forceVisibility(model, emissiveColorHex) {
+  // Forces the model to be bright and emissive regardless of missing PBR maps, and freezes matrices
+  _forceVisibility(model, emissiveColorHex, freezeMatrices = false) {
     model.traverse((child) => {
-      if (child.isMesh && child.material) {
-        child.material.envMapIntensity = 2.0;
-        child.material.depthWrite = true;
-        child.material.roughness = 0.5;
-        
-        if (!child.material.emissive) {
-          child.material.emissive = new THREE.Color(emissiveColorHex);
-        } else {
-          child.material.emissive.add(new THREE.Color(emissiveColorHex));
+      if (child.isMesh) {
+        child.castShadow = false;
+        child.receiveShadow = false;
+        if (freezeMatrices) {
+          child.matrixAutoUpdate = false;
+          child.updateMatrix();
         }
-        child.material.needsUpdate = true;
+        if (child.material) {
+          child.material.envMapIntensity = 2.0;
+          child.material.depthWrite = true;
+          child.material.roughness = 0.5;
+          if (!child.material.emissive) {
+            child.material.emissive = new THREE.Color(emissiveColorHex);
+          } else {
+            child.material.emissive.add(new THREE.Color(emissiveColorHex));
+          }
+          child.material.needsUpdate = true;
+        }
       }
     });
   }
@@ -67,12 +75,15 @@ export class Era10_Future {
       this.city.position.set(0, 50, -200); 
       this.city.rotation.x = Math.PI / 8; 
       
-      this._forceVisibility(this.city, 0x113344); // Cyberpunk blue glow
+      this._forceVisibility(this.city, 0x113344, false); // Cyberpunk blue glow
 
       if (gltf.animations.length > 0) {
         const mixer = new THREE.AnimationMixer(this.city);
         mixer.clipAction(gltf.animations[0]).play();
         this.mixers.push(mixer);
+      }
+      if (this.exp && this.exp.renderer && this.exp.camera) {
+        this.exp.renderer.instance.compile(this.city, this.exp.camera.instance);
       }
     });
 
@@ -84,7 +95,7 @@ export class Era10_Future {
       this._autoScale(this.car, 20, false); 
       this.car.position.set(-20, 10, -20);
       
-      this._forceVisibility(this.car, 0x332211); // Warm glow
+      this._forceVisibility(this.car, 0x332211, false); // Warm glow
 
       if (gltf.animations.length > 0) {
         const mixer = new THREE.AnimationMixer(this.car);
@@ -101,12 +112,14 @@ export class Era10_Future {
       this._autoScale(this.groundCity, 1000, true); 
       this.groundCity.position.set(0, -300, -300); 
       
-      this._forceVisibility(this.groundCity, 0x001122); 
+      this._forceVisibility(this.groundCity, 0x001122, true); 
 
-      // OPTIMIZATION: Do not load animations for the background city! 
-      // This prevents the severe CPU hang/lag.
+      // OPTIMIZATION: Freeze matrices and precompile shaders
       this.groundCity.matrixAutoUpdate = false;
       this.groundCity.updateMatrix();
+      if (this.exp && this.exp.renderer && this.exp.camera) {
+        this.exp.renderer.instance.compile(this.groundCity, this.exp.camera.instance);
+      }
     });
     
     // Cyberpunk Lighting Setup (Stronger for PBR Models)
