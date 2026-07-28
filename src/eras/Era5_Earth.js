@@ -1,121 +1,121 @@
 import * as THREE from 'three';
-import planetVertex   from '../shaders/planet/vertex.glsl';
-import planetFragment from '../shaders/planet/fragment.glsl';
-import atmosphereVertex   from '../shaders/atmosphere/vertex.glsl';
-import atmosphereFragment from '../shaders/atmosphere/fragment.glsl';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
- * Era 5 — EARTH
- * Planet fully cools. Ocean fills. Atmosphere thickens.
- * Clouds roll. Lightning. Time-lapse rotation.
+ * Era 5 — EARTH (Award-Winning 4K Photorealistic Earth GLB Model)
+ * Replaces old procedural shader with user-provided high-poly 4K earth.glb model.
+ * Features 3D atmosphere glow, realistic lighting, and Moon system.
  */
 export class Era5_Earth {
   constructor(experience) {
     this.exp     = experience;
     this.visible = false;
+    this.group   = new THREE.Group();
+    this.group.visible = false;
+    this.exp.scene.add(this.group);
 
-    this._buildPlanet();
-    this._buildClouds();
+    this.mixers = [];
+    this._loadEarthModel();
+    this._buildAtmosphereGlow();
     this._buildMoon();
     this._buildStarfield();
+
+    // Lighting for 4K PBR Materials
+    const ambient = new THREE.AmbientLight(0xffffff, 1.8);
+    this.group.add(ambient);
+
+    this.sunLight = new THREE.DirectionalLight(0xffffff, 4.5);
+    this.sunLight.position.set(50, 20, 30);
+    this.group.add(this.sunLight);
   }
 
-  _buildPlanet() {
-    this.planetUniforms = {
-      uTime:         { value: 0 },
-      uCoolProgress: { value: 1.0 },
-      uOceanProgress:{ value: 0.0 },
-      uSunDirection: { value: new THREE.Vector3(1, 0.3, 0.5).normalize() },
-      tDiffuse:      { value: null },
-      tSpecular:     { value: null },
-      tNormal:       { value: null }
-    };
+  _loadEarthModel() {
+    const loader = new GLTFLoader();
+    loader.load('/models/earth.glb', (gltf) => {
+      this.earthModel = gltf.scene;
+      
+      // Auto-center and normalize scale
+      const box = new THREE.Box3().setFromObject(this.earthModel);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const targetScale = 5.0 / maxDim; // Normalize to 5 units sphere diameter
+      this.earthModel.scale.setScalar(targetScale);
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.setCrossOrigin('anonymous');
-    
-    // Load high-res earth textures from reliable CDN
-    const baseUrl = 'https://unpkg.com/three-globe/example/img/';
-    
-    this.planetUniforms.uTextureLoaded = { value: 0.0 };
+      this.earthModel.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            child.material.roughness = 0.4;
+            child.material.metalness = 0.1;
+            child.material.envMapIntensity = 2.0;
+            child.material.needsUpdate = true;
+          }
+        }
+      });
 
-    textureLoader.load(baseUrl + 'earth-blue-marble.jpg', (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      this.planetUniforms.tDiffuse.value = tex;
-      this.planetUniforms.uTextureLoaded.value = 1.0;
-    });
-    textureLoader.load(baseUrl + 'earth-water.png', (tex) => {
-      this.planetUniforms.tSpecular.value = tex;
-    });
-    textureLoader.load(baseUrl + 'earth-topology.png', (tex) => {
-      this.planetUniforms.tNormal.value = tex;
-    });
+      this.group.add(this.earthModel);
 
-    const geo = new THREE.SphereGeometry(2, 128, 128);
-    const mat = new THREE.RawShaderMaterial({
-      vertexShader:   planetVertex,
-      fragmentShader: planetFragment,
-      uniforms:       this.planetUniforms,
-      glslVersion:    THREE.GLSL3,
-    });
+      if (gltf.animations && gltf.animations.length > 0) {
+        const mixer = new THREE.AnimationMixer(this.earthModel);
+        gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+        this.mixers.push(mixer);
+      }
 
-    this.planet = new THREE.Mesh(geo, mat);
-    this.planet.visible = false;
-    this.exp.scene.add(this.planet);
+      if (this.exp && this.exp.renderer && this.exp.camera) {
+        this.exp.renderer.instance.compile(this.earthModel, this.exp.camera.instance);
+      }
+    }, undefined, (e) => console.error("Error loading earth.glb:", e));
+  }
 
-    // Atmosphere (Rayleigh scattering style)
-    const atmoGeo = new THREE.SphereGeometry(2.1, 64, 64);
-    this.atmoUniforms = {
-      uSunDirection:       { value: this.planetUniforms.uSunDirection.value },
-      uAtmosphereColor:    { value: new THREE.Color('#4ca6ff') },
-      uAtmosphereStrength: { value: 0.0 },
-    };
-    const atmoMat = new THREE.RawShaderMaterial({
-      vertexShader:   atmosphereVertex,
-      fragmentShader: atmosphereFragment,
-      uniforms: this.atmoUniforms,
-      glslVersion:  THREE.GLSL3,
-      transparent:  true,
-      depthWrite:   false,
-      side:         THREE.FrontSide,
-      blending:     THREE.AdditiveBlending,
+  _buildAtmosphereGlow() {
+    // Photorealistic Blue Atmosphere Halo
+    const atmoGeo = new THREE.SphereGeometry(2.7, 64, 64);
+    const atmoMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 }
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+          vViewPosition = -mvPos.xyz;
+          gl_Position = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        void main() {
+          vec3 viewDir = normalize(vViewPosition);
+          float fresnel = 1.0 - clamp(dot(viewDir, vNormal), 0.0, 1.0);
+          float glow = pow(fresnel, 2.5);
+          vec3 col = mix(vec3(0.1, 0.5, 1.0), vec3(0.4, 0.8, 1.0), fresnel);
+          gl_FragColor = vec4(col * 2.0, glow * 0.85);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.BackSide
     });
     this.atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-    this.atmosphere.visible = false;
-    this.exp.scene.add(this.atmosphere);
-  }
-
-  _buildClouds() {
-    // Wispy cloud layer
-    const geo = new THREE.SphereGeometry(2.09, 64, 64);
-    const mat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-      wireframe: false,
-    });
-    this.clouds = new THREE.Mesh(geo, mat);
-    this.clouds.visible = false;
-    this.exp.scene.add(this.clouds);
+    this.group.add(this.atmosphere);
   }
 
   _buildMoon() {
-    const geo = new THREE.SphereGeometry(0.5, 32, 32);
+    const geo = new THREE.SphereGeometry(0.65, 64, 64);
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xaaaaaa,
-      roughness: 1,
-      metalness: 0,
+      color: 0xdddddd, roughness: 0.9, metalness: 0.1
     });
-    const light = new THREE.DirectionalLight(0xfff4e0, 1.5);
-    light.position.set(10, 5, 5);
-    this.exp.scene.add(light);
-
+    
     this.moon = new THREE.Mesh(geo, mat);
-    this.moon.position.set(4, 0.5, -1);
-    this.moon.visible = false;
-    this.exp.scene.add(this.moon);
+    this.moon.position.set(6.5, 1.2, -2.0);
+    this.group.add(this.moon);
   }
 
   _buildStarfield() {
@@ -132,74 +132,49 @@ export class Era5_Earth {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     this.bgStars = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 0.4, color: 0xffffff, transparent: true, opacity: 0,
+      size: 0.6, color: 0xffffff, transparent: true, opacity: 0.85,
     }));
-    this.bgStars.visible = false;
-    this.exp.scene.add(this.bgStars);
+    this.group.add(this.bgStars);
   }
 
   getCameraPath() {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(5,  2, 5),
-      new THREE.Vector3(3,  1, 4),
-      new THREE.Vector3(2,  0.5, 3),
-      new THREE.Vector3(1.5, 0, 2.5),
+      new THREE.Vector3(8,  3.5, 8),
+      new THREE.Vector3(5.5, 1.8, 5.5),
+      new THREE.Vector3(3.8, 0.8, 4),
+      new THREE.Vector3(3.0, 0.3, 3.2),
     ]);
     return { curve, lookAt: new THREE.Vector3(0, 0, 0) };
   }
 
   show(duration = 1.0) {
     this.visible = true;
-    this.planet.visible = true;
-    this.atmosphere.visible = true;
-    this.clouds.visible = true;
-    this.moon.visible = true;
-    this.bgStars.visible = true;
-
-    const start = performance.now();
-    const tick = () => {
-      const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.bgStars.material.opacity = t * 0.8;
-      this.clouds.material.opacity  = t * 0.25;
-      this.atmoUniforms.uAtmosphereStrength.value = t * 1.2;
-      if (t < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+    this.group.visible = true;
   }
 
   hide(duration = 0.6) {
     this.visible = false;
-    const start = performance.now();
-    const tick = () => {
-      const t = Math.min((performance.now() - start) / (duration * 1000), 1);
-      this.bgStars.material.opacity = 0.8 * (1 - t);
-      this.clouds.material.opacity  = 0.25 * (1 - t);
-      if (t < 1) requestAnimationFrame(tick);
-      else {
-        this.planet.visible = false;
-        this.atmosphere.visible = false;
-        this.clouds.visible = false;
-        this.moon.visible = false;
-        this.bgStars.visible = false;
-      }
-    };
-    requestAnimationFrame(tick);
+    this.group.visible = false;
   }
 
   onScrollT(t) {
-    // Ocean fills progressively
-    this.planetUniforms.uOceanProgress.value = t;
-    this.atmoUniforms.uAtmosphereStrength.value = 0.8 + t * 0.5;
-    // Moon orbit
     const angle = t * Math.PI * 2;
-    this.moon.position.set(Math.cos(angle) * 4, Math.sin(angle * 0.3) * 0.5, Math.sin(angle) * 4);
+    if (this.moon) {
+      this.moon.position.set(Math.cos(angle) * 7.5, Math.sin(angle * 0.4) * 1.8, Math.sin(angle) * 7.5);
+    }
   }
 
   update(time) {
     if (!this.visible) return;
-    this.planetUniforms.uTime.value = time;
-    this.planet.rotation.y = time * 0.03;
-    this.clouds.rotation.y = time * 0.025;
-    this.atmosphere.rotation.y = time * 0.03;
+
+    if (this.earthModel) {
+      this.earthModel.rotation.y = time * 0.05;
+    }
+    if (this.atmosphere) {
+      this.atmosphere.rotation.y = time * 0.05;
+    }
+    if (this.moon) {
+      this.moon.rotation.y = time * 0.03;
+    }
   }
 }

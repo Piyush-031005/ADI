@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
- * Era 8 — DINOSAURS
- * Optimized for performance: Loads only T-Rex and Pterodactyl.
- * Camera heavily zoomed in. Forced emissive lighting for visibility.
+ * Era 8 — DINOSAURS (Award-Winning Bruno Simon Quality)
+ * Features iconic Hero Rampaging T-Rex & Sky Pterodactyl, instanced 3D arching Cycad palm trees & ground ferns,
+ * level clearing terrain shader around dinosaur, and dramatic Chicxulub asteroid impact sequence.
  */
 export class Era8_Dinosaurs {
   constructor(experience) {
@@ -18,6 +19,7 @@ export class Era8_Dinosaurs {
     this.clock = new THREE.Clock();
 
     this._buildTerrain();
+    this._buildPrehistoricForest();
     this._buildAsteroid();
     this._loadModels();
   }
@@ -41,84 +43,59 @@ export class Era8_Dinosaurs {
 
   _loadModels() {
     const loader = new GLTFLoader();
+    const compileModel = (scene) => {
+      if (this.exp && this.exp.renderer && this.exp.camera) {
+        try {
+          this.exp.renderer.instance.compile(scene, this.exp.camera.instance);
+        } catch (e) {
+          console.warn("Shader compilation warning:", e);
+        }
+      }
+    };
 
-    // 1. T-Rex (Foreground)
+    // 1. Hero Rampaging T-Rex (Center Foreground Clearing - perfectly level ground!)
     loader.load('/models/dinosaurs/rampaging_tyrannosaurus_rex.glb', (gltf) => {
       this.trex = gltf.scene;
       this.group.add(this.trex);
-      
-      this._autoScale(this.trex, 18); // Massive size
-      this.trex.position.set(5, -15, 5); // Moved closer to center
-      this.trex.rotation.y = -Math.PI / 4; 
-      
-      // Let PBR lights handle it naturally
-
+      this._autoScale(this.trex, 18); 
+      this.trex.position.set(5, -15, 5);
+      this.trex.rotation.y = -Math.PI / 4;
       if (gltf.animations.length > 0) {
         const mixer = new THREE.AnimationMixer(this.trex);
         mixer.clipAction(gltf.animations[0]).play();
         this.mixers.push(mixer);
       }
+      compileModel(this.trex);
     });
 
-    // 2. Pterodactyl (Sky)
+    // 2. Pterodactyl (Circling overhead in sky)
     loader.load('/models/dinosaurs/Pteradactal.glb', (gltf) => {
       this.ptero = gltf.scene;
       this.group.add(this.ptero);
-      
       this._autoScale(this.ptero, 12, false); 
       this.ptero.position.set(0, 15, -10);
-      
-      // Let PBR lights handle it naturally
-
       if (gltf.animations.length > 0) {
         const mixer = new THREE.AnimationMixer(this.ptero);
         mixer.clipAction(gltf.animations[0]).play();
         this.mixers.push(mixer);
       }
-    });
-    
-    // 3. Triceratops
-    loader.load('/models/dinosaurs/triceratops_animated.glb', (gltf) => {
-      this.tri = gltf.scene;
-      this.group.add(this.tri);
-      this._autoScale(this.tri, 10, true);
-      this.tri.position.set(-20, -15, 10);
-      this.tri.rotation.y = Math.PI / 3;
-      if (gltf.animations.length > 0) {
-        const mixer = new THREE.AnimationMixer(this.tri);
-        mixer.clipAction(gltf.animations[0]).play();
-        this.mixers.push(mixer);
-      }
+      compileModel(this.ptero);
     });
 
-    // 4. Velociraptor
-    loader.load('/models/dinosaurs/animated_jwr_velociraptor.glb', (gltf) => {
-      this.raptor = gltf.scene;
-      this.group.add(this.raptor);
-      this._autoScale(this.raptor, 6, true);
-      this.raptor.position.set(15, -15, 20);
-      this.raptor.rotation.y = -Math.PI / 1.5;
-      if (gltf.animations.length > 0) {
-        const mixer = new THREE.AnimationMixer(this.raptor);
-        mixer.clipAction(gltf.animations[0]).play();
-        this.mixers.push(mixer);
-      }
-    });
-
-    const ambient = new THREE.AmbientLight(0xffffff, 2.0);
+    const ambient = new THREE.AmbientLight(0xffffff, 2.2);
     this.group.add(ambient);
     
-    const hemiLight = new THREE.HemisphereLight(0xffddaa, 0x444444, 3.0);
+    const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x334422, 3.5);
     hemiLight.position.set(0, 200, 0);
     this.group.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffaa55, 6.0);
+    const dirLight = new THREE.DirectionalLight(0xffaa55, 6.5);
     dirLight.position.set(-100, 200, 100);
     this.group.add(dirLight);
   }
 
   _buildTerrain() {
-    const geo = new THREE.PlaneGeometry(300, 300, 64, 64);
+    const geo = new THREE.PlaneGeometry(350, 350, 128, 128);
     geo.rotateX(-Math.PI * 0.5);
     
     this.terrainMat = new THREE.ShaderMaterial({
@@ -131,6 +108,7 @@ export class Era8_Dinosaurs {
         uniform float uImpact;
         varying vec3 vPos;
         varying float vHeight;
+        varying vec3 vNormal;
         
         vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -159,15 +137,20 @@ export class Era8_Dinosaurs {
 
         void main() {
           vec3 pos = position;
-          float h = snoise(pos.xz * 0.03) * 6.0 + snoise(pos.xz * 0.1) * 1.5;
+          float h = snoise(pos.xz * 0.025) * 8.0 + snoise(pos.xz * 0.08) * 2.5 + snoise(pos.xz * 0.25) * 0.5;
+          
+          // CRITICAL FIX: Flatten ground around T-Rex (at x=5, z=5) so dinosaur is never swallowed by hills!
+          float dinoDist = length(pos.xz - vec2(5.0, 5.0));
+          h *= smoothstep(12.0, 38.0, dinoDist);
           
           float dist = length(pos.xz);
-          float crater = smoothstep(50.0, 0.0, dist) * -20.0;
-          float rim = smoothstep(70.0, 40.0, dist) * smoothstep(10.0, 40.0, dist) * 15.0;
+          float crater = smoothstep(55.0, 0.0, dist) * -24.0;
+          float rim = smoothstep(75.0, 42.0, dist) * smoothstep(12.0, 42.0, dist) * 18.0;
           
-          pos.y = mix(h, h + crater + rim, uImpact) - 5.0; // Lowered mountains via -5.0
+          pos.y = mix(h, h + crater + rim, uImpact) - 15.0; 
           vPos = pos;
-          vHeight = pos.y;
+          vHeight = pos.y + 15.0;
+          vNormal = normal;
           
           gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
@@ -177,21 +160,31 @@ export class Era8_Dinosaurs {
         uniform float uImpact;
         varying vec3 vPos;
         varying float vHeight;
+        varying vec3 vNormal;
         
         void main() {
-          vec3 preImpact = vec3(0.1, 0.35, 0.1); // Lush green
-          vec3 scorched = vec3(0.01, 0.01, 0.01); 
-          vec3 magma = vec3(1.0, 0.3, 0.0);
+          vec3 deepMoss  = vec3(0.06, 0.16, 0.04); 
+          vec3 richJungle= vec3(0.12, 0.26, 0.08); 
+          vec3 warmSoil  = vec3(0.22, 0.15, 0.07); 
+          vec3 highland  = vec3(0.16, 0.30, 0.10);
           
-          vec3 baseColor = mix(preImpact, scorched, uImpact);
+          float noisePattern = sin(vPos.x * 0.25 + vPos.z * 0.25) * 0.5 + 0.5;
+          vec3 groundCol = mix(deepMoss, richJungle, noisePattern);
+          groundCol = mix(groundCol, warmSoil, smoothstep(-2.0, 6.0, vHeight) * 0.35);
+          groundCol = mix(groundCol, highland, smoothstep(5.0, 15.0, vHeight));
           
-          float magmaGlow = smoothstep(0.0, -15.0, vHeight);
-          magmaGlow *= (0.8 + 0.2 * sin(time * 3.0 + vPos.x * 2.0));
+          vec3 scorched = vec3(0.02, 0.02, 0.02); 
+          vec3 magma    = vec3(1.0, 0.35, 0.0);
+          
+          vec3 baseColor = mix(groundCol, scorched, uImpact);
+          
+          float magmaGlow = smoothstep(-10.0, -22.0, vPos.y);
+          magmaGlow *= (0.8 + 0.2 * sin(time * 3.5 + vPos.x * 2.0));
           
           vec3 finalColor = mix(baseColor, magma, magmaGlow * uImpact);
           
           float dist = gl_FragCoord.z / gl_FragCoord.w;
-          float fog = smoothstep(30.0, 150.0, dist);
+          float fog = smoothstep(45.0, 180.0, dist);
           finalColor = mix(finalColor, vec3(0.0), fog);
 
           gl_FragColor = vec4(finalColor, 1.0);
@@ -199,13 +192,94 @@ export class Era8_Dinosaurs {
       `
     });
     this.terrain = new THREE.Mesh(geo, this.terrainMat);
-    this.terrain.position.y = -15;
     this.group.add(this.terrain);
+  }
+
+  _buildPrehistoricForest() {
+    this.forestGroup = new THREE.Group();
+    
+    // Build a high-detail arching Cycad Palm crown (12 curved palm fronds instead of a Minecraft cone!)
+    const crownGeo = new THREE.BufferGeometry();
+    const frondMeshes = [];
+    const frondMat = new THREE.MeshStandardMaterial({ 
+      color: 0x18440f, roughness: 0.5, side: THREE.DoubleSide 
+    });
+
+    // Create 12 arching palm leaves arranged radially
+    for (let i = 0; i < 12; i++) {
+      const leafGeo = new THREE.PlaneGeometry(1.8, 6.0, 2, 4);
+      // Bend leaf outward and downward like a real prehistoric palm frond
+      const pos = leafGeo.attributes.position;
+      for (let j = 0; j < pos.count; j++) {
+        const y = pos.getY(j);
+        const z = pos.getZ(j);
+        // Curve tip downwards
+        const bend = Math.pow((y + 3.0) / 6.0, 2.0) * 1.8;
+        pos.setZ(j, z - bend);
+      }
+      leafGeo.translate(0, 3.0, 0);
+      leafGeo.rotateX(Math.PI * 0.28);
+      leafGeo.rotateY((i / 12) * Math.PI * 2);
+      frondMeshes.push(leafGeo);
+    }
+    
+    // Merge leaf geometries into a single high-resolution palm crown
+    const mergedCrownGeo = BufferGeometryUtils.mergeGeometries(frondMeshes) || frondMeshes[0];
+    
+    const count = 220;
+    const trunkGeo = new THREE.CylinderGeometry(0.35, 0.7, 7, 12);
+    trunkGeo.translate(0, 3.5, 0);
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x382212, roughness: 0.9 });
+    
+    this.trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count);
+    this.fronds = new THREE.InstancedMesh(mergedCrownGeo, frondMat, count);
+    
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist  = 20 + Math.random() * 125;
+      // Keep center clearing open for T-Rex
+      if (dist < 26 && Math.random() > 0.1) continue;
+      
+      const x = Math.cos(angle) * dist;
+      const z = Math.sin(angle) * dist;
+      
+      // Calculate terrain height so trees sit firmly on hills
+      let h = 0;
+      if (dist >= 12) {
+        h = Math.sin(x * 0.025) * 4.0 + Math.cos(z * 0.08) * 1.5;
+        const dinoDist = Math.hypot(x - 5.0, z - 5.0);
+        if (dinoDist < 38.0) {
+          h *= (dinoDist - 12.0) / 26.0;
+          if (h < 0) h = 0;
+        }
+      }
+
+      dummy.position.set(x, -15 + h, z);
+      dummy.rotation.y = Math.random() * Math.PI * 2;
+      const scale = 0.7 + Math.random() * 0.6;
+      dummy.scale.set(scale, scale, scale);
+      dummy.updateMatrix();
+      
+      this.trunks.setMatrixAt(i, dummy.matrix);
+      
+      // Position crown on top of trunk
+      dummy.position.y += 6.5 * scale;
+      dummy.updateMatrix();
+      this.fronds.setMatrixAt(i, dummy.matrix);
+    }
+    
+    this.trunks.instanceMatrix.needsUpdate = true;
+    this.fronds.instanceMatrix.needsUpdate = true;
+    
+    this.forestGroup.add(this.trunks);
+    this.forestGroup.add(this.fronds);
+    this.group.add(this.forestGroup);
   }
 
   _buildAsteroid() {
     this.asteroidGroup = new THREE.Group();
-    const coreGeo = new THREE.SphereGeometry(6, 64, 64); // Reduced poly count
+    const coreGeo = new THREE.SphereGeometry(6, 64, 64);
     this.asteroidMat = new THREE.ShaderMaterial({
       uniforms: { time: { value: 0 } },
       vertexShader: `
@@ -271,7 +345,7 @@ export class Era8_Dinosaurs {
         varying float vNoise;
         void main() {
           vec3 rockColor = vec3(0.05, 0.05, 0.05); 
-          vec3 magmaColor = vec3(1.0, 0.3, 0.0);   
+          vec3 magmaColor = vec3(1.0, 0.35, 0.0);   
           float magmaFactor = smoothstep(-1.0, -2.5, vNoise);
           vec3 finalColor = mix(rockColor, magmaColor, magmaFactor);
           gl_FragColor = vec4(finalColor, 1.0);
@@ -282,7 +356,7 @@ export class Era8_Dinosaurs {
     this.asteroidGroup.add(this.meteorCore);
     
     const tGeo = new THREE.BufferGeometry();
-    const count = 1000; // Reduced particles to save lag
+    const count = 1000; 
     const pos = new Float32Array(count * 3);
     for(let i=0; i<count; i++) {
       const r = Math.random() * 5;
@@ -334,7 +408,7 @@ export class Era8_Dinosaurs {
     this.asteroidGroup.lookAt(0, -15, 0);
     this.group.add(this.asteroidGroup);
 
-    const flashGeo = new THREE.PlaneGeometry(300, 300);
+    const flashGeo = new THREE.PlaneGeometry(350, 350);
     const flashMat = new THREE.MeshBasicMaterial({
       color: 0xffaa55,
       transparent: true,
@@ -348,13 +422,12 @@ export class Era8_Dinosaurs {
   }
 
   getCameraPath() {
-    // Zoomed deeply into the T-Rex (which is at 5, -15, 5)
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(5, -5, 40),    // Start wide
-      new THREE.Vector3(5, -10, 20),   // Zoom in extremely close to its face
-      new THREE.Vector3(-10, -12, 10), // Pan around it
+      new THREE.Vector3(5, -5, 45),    
+      new THREE.Vector3(5, -10, 22),   
+      new THREE.Vector3(-12, -12, 12), 
     ]);
-    return { curve, lookAt: new THREE.Vector3(5, -10, 5) }; // Staring right at it
+    return { curve, lookAt: new THREE.Vector3(5, -10, 5) }; 
   }
 
   show(duration = 1.0) {
@@ -377,38 +450,44 @@ export class Era8_Dinosaurs {
         THREE.MathUtils.lerp(-150, 0, easeMt)
       );
       this.asteroidGroup.visible = true;
-      this.terrainMat.uniforms.uImpact.value = 0; 
-      this.flash.material.opacity = 0;
+      if (this.terrainMat) this.terrainMat.uniforms.uImpact.value = 0; 
+      if (this.flash) this.flash.material.opacity = 0;
     } else {
-      this.asteroidGroup.visible = false;
+      if (this.asteroidGroup) this.asteroidGroup.visible = false;
       const postT = (t - 0.7) / 0.3; 
-      this.terrainMat.uniforms.uImpact.value = 1.0; 
-      if (postT < 0.1) {
-        this.flash.material.opacity = postT / 0.1; 
-      } else {
-        this.flash.material.opacity = 1.0 - ((postT - 0.1) / 0.9);
+      if (this.terrainMat) this.terrainMat.uniforms.uImpact.value = 1.0; 
+      if (this.flash) {
+        if (postT < 0.1) {
+          this.flash.material.opacity = postT / 0.1; 
+        } else {
+          this.flash.material.opacity = 1.0 - ((postT - 0.1) / 0.9);
+        }
       }
     }
   }
 
   update(time) {
-    if (!this.visible) return; // Prevent lag by skipping updates when hidden
+    if (!this.visible) return; 
     const delta = this.clock.getDelta();
 
     this.mixers.forEach(mixer => mixer.update(delta));
 
-    this.terrainMat.uniforms.time.value = time;
-    this.asteroidMat.uniforms.time.value = time;
-    this.meteorTrail.material.uniforms.time.value = time;
+    if (this.terrainMat) this.terrainMat.uniforms.time.value = time;
+    if (this.asteroidMat) this.asteroidMat.uniforms.time.value = time;
+    if (this.meteorTrail && this.meteorTrail.material) {
+      this.meteorTrail.material.uniforms.time.value = time;
+    }
     
-    this.meteorCore.rotation.x = time * 3;
-    this.meteorCore.rotation.y = time * 2;
-    this.meteorCore.rotation.z = time * 1.5;
+    if (this.meteorCore) {
+      this.meteorCore.rotation.x = time * 3;
+      this.meteorCore.rotation.y = time * 2;
+      this.meteorCore.rotation.z = time * 1.5;
+    }
 
     if (this.ptero) {
-      this.ptero.position.x = Math.sin(time) * 40;
-      this.ptero.position.z = Math.cos(time) * 40 - 20;
-      this.ptero.rotation.y = time + Math.PI; 
+      this.ptero.position.x = Math.sin(time * 0.8) * 45;
+      this.ptero.position.z = Math.cos(time * 0.8) * 45 - 20;
+      this.ptero.rotation.y = time * 0.8 + Math.PI; 
     }
   }
 }
