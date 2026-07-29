@@ -33,13 +33,13 @@ export class Era5_Earth {
     loader.load('/models/earth.glb', (gltf) => {
       this.earthModel = gltf.scene;
       
-      // Auto-center and normalize scale safely
+      // Use a fixed scale in case the model's bounding box is broken or extreme
+      this.earthModel.scale.setScalar(3.0);
+      
+      // Auto-center the model to ensure it spawns exactly at (0,0,0) and doesn't get lost off-screen
       const box = new THREE.Box3().setFromObject(this.earthModel);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const targetScale = (maxDim > 0.001) ? (5.0 / maxDim) : 5.0; // Fallback if maxDim is 0
-      this.earthModel.scale.setScalar(targetScale);
+      const center = box.getCenter(new THREE.Vector3());
+      this.earthModel.position.sub(center);
 
       this.earthModel.traverse((child) => {
         if (child.isMesh) {

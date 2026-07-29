@@ -20,12 +20,12 @@ export class AudioEngine {
       4: '/music/black hole.mp3?v=4',
       5: '/music/rise of soalr system and earth.mp3?v=4',
       6: '/music/rise of soalr system and earth.mp3?v=4', // Earth shares with Solar System
-      7: '/music/camprian perod.mp3?v=4', // First Life gets its own sound
-      8: '/music/dinosaur.mp3?v=4',       // Cambrian gets its own sound
-      9: '/music/human.mp3?v=4',         // Dinosaur gets its own sound
-      10: '/music/cyberpunk future.mp3?v=4', // Human gets its own sound
-      11: '/music/unknown last era.mp3?v=4', // Future shares with Unknown
-      12: '/music/unknown last era.mp3?v=4'  // Unknown
+      7: '/music/first life.mp3?v=4',
+      8: '/music/camprian perod.mp3?v=4',
+      9: '/music/dinosaur.mp3?v=4',
+      10: '/music/human.mp3?v=4',
+      11: '/music/cyberpunk future.mp3?v=4',
+      12: '/music/cyberpunk future.mp3?v=4'
     };
     
     this.ctx = null;
