@@ -84,6 +84,7 @@ export class Era9_Humans {
 
   async _loadAllModels() {
     const loader = new GLTFLoader();
+    // The user's GitHub repository is Private, so we cannot fetch directly from raw.githubusercontent.com
     const base = '/models/humans/';
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
