@@ -261,10 +261,16 @@ export class Era8_Dinosaurs {
         varying vec2 vUv;
         varying float vNoise;
         void main() {
-          vec3 rockColor = vec3(0.05, 0.05, 0.05); 
-          vec3 magmaColor = vec3(1.0, 0.35, 0.0);   
-          float magmaFactor = smoothstep(-1.0, -2.5, vNoise);
+          vec3 rockColor = vec3(0.3, 0.05, 0.0); 
+          vec3 magmaColor = vec3(1.0, 0.4, 0.0);   
+          vec3 brightMagma = vec3(1.0, 0.8, 0.2);
+          
+          float magmaFactor = smoothstep(0.0, 1.0, vNoise);
+          float brightFactor = smoothstep(0.5, 1.5, vNoise);
+          
           vec3 finalColor = mix(rockColor, magmaColor, magmaFactor);
+          finalColor = mix(finalColor, brightMagma, brightFactor);
+          
           gl_FragColor = vec4(finalColor, 1.0);
         }
       `

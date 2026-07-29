@@ -241,6 +241,25 @@ body, html {
   text-transform: uppercase;
   color: var(--color-muted);
 }
+
+/* Drag to orbit hint - Top Right (visible, not overlapping anything) */
+#drag-hint {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.6;
+  pointer-events: none;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  z-index: 50;
+}
 .scroll-hint-arrow {
   width: 1px; height: 30px;
   background: linear-gradient(to bottom, var(--color-muted) 0%, transparent 100%);

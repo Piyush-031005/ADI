@@ -148,7 +148,8 @@ export class Era9_Humans {
     await delay(80);
     await load('prayer_hall_tilya-kori_madrasah_samarkand.glb', 90, 80, 110, -0.6);
     await delay(80);
-    await load('greek_temple.glb',                  0, 60,  130, 0.0);
+    // Moved greek temple to the side so camera doesn't fly through its bricks
+    await load('greek_temple.glb',                 -120, 60,  130, 0.0);
     await delay(80);
 
     // ── STAGE 3: Naval & Medieval ────────────────────────────────────────
@@ -185,15 +186,12 @@ export class Era9_Humans {
     // Right city
     await load('san_francisco_city.glb',            280,  50,  180, -Math.PI / 2);
     await delay(80);
-    // Left city
-    await load('ccity_building_set_1.glb',         -280,  50,  180,  Math.PI / 2);
-    await delay(80);
+    // Left city (ccity_building_set removed for performance and to fix white brick issue)
+    
     // Front-left diagonal
     await load('night_city_japan.glb',             -200, -160, 180,  Math.PI * 0.75);
     await delay(80);
-    // Front-right diagonal
-    await load('imaginary_city_i.glb',              200, -160, 180, -Math.PI * 0.75);
-    await delay(80);
+    // Front-right diagonal (removed for performance)
     // Back-left
     await load('cyberpunk_city_-_1.glb',           -200,  220, 180,  Math.PI * 0.25);
     await delay(80);
