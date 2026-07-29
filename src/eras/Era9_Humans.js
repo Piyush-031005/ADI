@@ -22,7 +22,11 @@ export class Era9_Humans {
     this.FLOOR_Y = 0; // camera flies at Y=8, models ground at Y=0
 
     this._buildEnvironment();
-    this._loadAllModels();
+    
+    // Delay heavy model loading by 4 seconds to ensure the Void era starts flawlessly without lag
+    setTimeout(() => {
+      this._loadAllModels();
+    }, 4000);
   }
 
   _buildEnvironment() {

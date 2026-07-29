@@ -17,10 +17,13 @@ export class Era8_Dinosaurs {
     
     this.mixers = [];
     this.clock = new THREE.Clock();
-
     this._buildTerrain();
     this._buildAsteroid();
-    this._loadModels();
+    
+    // Delay heavy model loading by 3 seconds to ensure the Void era starts flawlessly without lag
+    setTimeout(() => {
+      this._loadModels();
+    }, 3000);
   }
 
   _autoScale(model, targetSize, keepBottomAtZero = true) {
