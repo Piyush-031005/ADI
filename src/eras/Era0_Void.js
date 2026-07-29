@@ -31,7 +31,7 @@ export class Era0_Void {
   }
 
   _buildCenteredDust() {
-    const count = 6000;
+    const count = 1500;
     this._posArray = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
