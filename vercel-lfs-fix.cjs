@@ -48,7 +48,7 @@ async function run() {
     // If file is less than 1KB, it's an LFS pointer, so download the real file!
     if (stats.size < 1024) {
       const relativePath = path.relative(__dirname, file).replace(/\\/g, '/');
-      const url = `https://media.githubusercontent.com/media/${REPO}/${BRANCH}/${relativePath}`;
+      const url = `https://github.com/${REPO}/raw/${BRANCH}/${relativePath}`;
       console.log(`Downloading real LFS file for ${relativePath}...`);
       try {
         await downloadFile(url, file);
