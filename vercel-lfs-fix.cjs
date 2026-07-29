@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 
-const REPO = 'Piyush-031005/ADI-From-Nothing-To-Everything-';
+const REPO = 'Piyush-031005/ADI';
 const BRANCH = 'master';
 
 function downloadFile(url, dest) {
@@ -25,6 +25,7 @@ function downloadFile(url, dest) {
 }
 
 function findFiles(dir, ext, fileList = []) {
+  if (!fs.existsSync(dir)) return fileList;
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const filePath = path.join(dir, file);
@@ -39,11 +40,14 @@ function findFiles(dir, ext, fileList = []) {
 
 async function run() {
   const modelsDir = path.join(__dirname, 'public', 'models');
-  if (!fs.existsSync(modelsDir)) return;
+  const musicDir = path.join(__dirname, 'public', 'music');
   
-  const glbFiles = findFiles(modelsDir, '.glb');
+  const filesToFix = [
+    ...findFiles(modelsDir, '.glb'),
+    ...findFiles(musicDir, '.mp3')
+  ];
   
-  for (const file of glbFiles) {
+  for (const file of filesToFix) {
     const stats = fs.statSync(file);
     // If file is less than 1KB, it's an LFS pointer, so download the real file!
     if (stats.size < 1024) {
