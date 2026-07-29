@@ -124,42 +124,24 @@ export class Era9_Humans {
     });
 
     // ── STAGE 0: Dawn of Man (far back) ──────────────────────────────────
+    // Removed excess primitive models to ensure blazing fast loading
     await load('homo_heidelbergensis.glb',          -30, 220, 35,  0.3);
-    await delay(80);
-    await load('women_of_primitive_tribes.glb',      30, 200, 35, -0.3);
-    await delay(80);
-    await load('tribal_skull_with_primitive_jewelry.glb', 0, 180, 30, 0.2);
     await delay(80);
 
     // ── STAGE 1: Warriors & Ancient World ────────────────────────────────
-    await load('zulu.glb',                          -40, 150, 35, 0.5);
-    await delay(80);
     await load('feathered_warrior_of_the_ancestors_3d_model.glb', 40, 130, 40, -0.5);
     await delay(80);
     await load('gladiator.glb',                     -30, 110, 40, 0.3);
-    await delay(80);
-    await load('warrior_monk_stylized_idle_animation.glb',  30, 90, 38, -0.3);
-    await delay(80);
-    await load('portuguese_sailor_b_fbx.glb',        0, 70,  35, 0.0);
     await delay(80);
 
     // ── STAGE 2: Ancient Temples & Empires ───────────────────────────────
     await load('hindu_temple.glb',                 -90, 100, 120, 0.6);
     await delay(80);
-    await load('prayer_hall_tilya-kori_madrasah_samarkand.glb', 90, 80, 110, -0.6);
-    await delay(80);
-    // Moved greek temple to the side so camera doesn't fly through its bricks
     await load('greek_temple.glb',                 -120, 60,  130, 0.0);
     await delay(80);
 
     // ── STAGE 3: Naval & Medieval ────────────────────────────────────────
     await load('queen_annes_revenge.glb',           50, 30, 50, -0.4);
-    await delay(80);
-    await load('armored_king.glb',                 -40, 20, 45, 0.5);
-    await delay(80);
-    await load('rigged_for_ue4_-_spartan_-_free.glb', 0, 10, 42, 0.0);
-    await delay(80);
-    await load('hindu_warrior.glb',                -20, -20, 40, 0.3);
     await delay(80);
 
     // ── STAGE 4: Modern / Industrial ─────────────────────────────────────
@@ -167,36 +149,17 @@ export class Era9_Humans {
     await delay(80);
     await load('helicopter.glb',                   -40, -80, 55, 0.4);  // flies above ground
     await delay(80);
-    await load('generic_passenger_car_pack.glb',    10, -60, 50, 0.0);
-    await delay(80);
-    await load('casual_weekend_outfit.glb',         -15, -90, 38, 0.2);
-    await delay(80);
 
     // ── STAGE 5: Future / Cyberpunk ──────────────────────────────────────
     await load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0);
     await delay(80);
 
-    // ── CITIES: Surround the entire 360° horizon ──────────────────────────
-    // Front city (straight ahead)
-    await load('city.glb',                          0,   -200, 180, 0.0);
+    // ── CITIES: Enlarge to cover the entire background ──────────────────────────
+    // Front city (scaled massively to cover the whole front horizon instead of stars)
+    await load('city.glb',                          0,   -250, 450, 0.0);
     await delay(80);
-    // Back city
-    await load('futuristic_city.glb',               0,    280, 180, Math.PI);
-    await delay(80);
-    // Right city
-    await load('san_francisco_city.glb',            280,  50,  180, -Math.PI / 2);
-    await delay(80);
-    // Left city (ccity_building_set removed for performance and to fix white brick issue)
-    
-    // Front-left diagonal
-    await load('night_city_japan.glb',             -200, -160, 180,  Math.PI * 0.75);
-    await delay(80);
-    // Front-right diagonal (removed for performance)
-    // Back-left
-    await load('cyberpunk_city_-_1.glb',           -200,  220, 180,  Math.PI * 0.25);
-    await delay(80);
-    // Cyberpunk future (massive, far back)
-    await load('apocalyptic_city.glb',              200,  250, 200, -Math.PI * 0.25);
+    // Cyberpunk future (massive, far back covering the whole back horizon)
+    await load('apocalyptic_city.glb',              0,    300, 450, Math.PI);
   }
 
   getCameraPath() {

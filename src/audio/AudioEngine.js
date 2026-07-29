@@ -77,11 +77,11 @@ export class AudioEngine {
         console.warn("Could not create media element source", e);
       }
 
-      // Cut human era track in half to avoid the rap section, fade it and loop it
+      // Cut human era track to first 15 seconds to completely avoid any vocals/rap, fade it and loop it
       if (url.includes('human.mp3')) {
         let isFading = false;
         audio.addEventListener('timeupdate', () => {
-          if (audio.currentTime > 45 && !isFading && trackGain.gain.value > 0.1) {
+          if (audio.currentTime > 15 && !isFading && trackGain.gain.value > 0.1) {
             isFading = true;
             gsap.to(trackGain.gain, { 
               value: 0, 
