@@ -148,7 +148,7 @@ export class AudioEngine {
 
     // Special track timings
     if (eraIndex === 1) {
-      nextTrack.audio.currentTime = 3.0;
+      nextTrack.audio.currentTime = 0; // Start immediately to prevent late sound
     } else if (eraIndex === 2) {
       nextTrack.audio.currentTime = 0; // Start Big Bang immediately at 0s
     }
@@ -161,8 +161,8 @@ export class AudioEngine {
       });
     }
 
-    // Fade in: Big Bang (era 2) hits instantaneously at full volume, others fade smoothly over 1.2s
-    const fadeDuration = (eraIndex === 2) ? 0.05 : 1.2;
+    // Fade in: Big Bang (era 2) hits instantaneously at full volume, others fade incredibly fast
+    const fadeDuration = (eraIndex === 2) ? 0.05 : 0.1;
     if (eraIndex === 2) {
       nextTrack.gainNode.gain.setValueAtTime(1.0, this.ctx.currentTime);
     }
