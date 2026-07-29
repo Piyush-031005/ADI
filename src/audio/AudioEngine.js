@@ -12,7 +12,6 @@ export class AudioEngine {
     this.activeTrackUrl = null;
     this.activeTrackObj = null;
 
-    // Track mapping with ?v=2 cache buster to force browser to grab updated MP3s
     this.eraToTrack = {
       0: '/music/void.mp3?v=2',
       1: '/music/singularity.mp3?v=2',
@@ -22,10 +21,11 @@ export class AudioEngine {
       5: '/music/rise of soalr system and earth.mp3?v=2',
       6: '/music/rise of soalr system and earth.mp3?v=2',
       7: '/music/camprian perod.mp3?v=2',
-      8: '/music/dinosaur.mp3?v=2',
-      9: '/music/cyberpunk future.mp3?v=2', // Replaced human.mp3 to completely eradicate the rap vocals
-      10: '/music/cyberpunk future.mp3?v=2',
-      11: '/music/unknown last era.mp3?v=2'
+      8: '/music/camprian perod.mp3?v=2', // Cambrian
+      9: '/music/dinosaur.mp3?v=2',       // Dinosaurs
+      10: '/music/cyberpunk future.mp3?v=2', // Humans (rap removed)
+      11: '/music/cyberpunk future.mp3?v=2', // Future
+      12: '/music/unknown last era.mp3?v=2'  // Unknown
     };
     
     this.ctx = null;

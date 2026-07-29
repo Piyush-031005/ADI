@@ -100,17 +100,33 @@ export class Era9_Humans {
       }, undefined, e => { console.warn('skip', file, e); resolve(); });
     });
 
-    // ── LOAD ESSENTIAL MODELS (Removed rigged characters to fix severe lag) ──────
+    // ── LOAD ALL MODELS (Characters Restored) ──────
     await Promise.all([
-      // Ancient World & Temples
-      load('zulu.glb',                          -40, 190, 35, 0.5),
-      load('hindu_temple.glb',                 -90, 100, 120, 0.6),
-      load('greek_temple.glb',                 -120, 60,  130, 0.0),
+      // Early Hominids & Tribes
+      load('homo_heidelbergensis.glb',          0, 280, 20, 0),
+      load('women_of_primitive_tribes.glb',   -20, 250, 18, 0.2),
+      load('zulu.glb',                        -40, 190, 35, 0.5),
 
-      // Wars & Industrial
-      load('queen_annes_revenge.glb',           50, 30, 50, -0.4),
+      // Ancient World & Warriors
+      load('feathered_warrior_of_the_ancestors_3d_model.glb', 30, 200, 30, -0.4),
+      load('hindu_temple.glb',                 -90, 100, 120, 0.6),
+      load('hindu_warrior.glb',                -30, 110, 25,  0.5),
+      load('warrior_monk_stylized_idle_animation.glb', 40, 120, 22, -0.3),
+      
+      // Antiquity
+      load('greek_temple.glb',                 -120, 60,  130, 0.0),
+      load('gladiator.glb',                    -20,  70,  20,  0.2),
+      load('rigged_for_ue4_-_spartan_-_free.glb', 20, 50, 22, -0.1),
+
+      // Medieval & Age of Discovery
+      load('armored_king.glb',                  15,  20,  18, -0.2),
+      load('queen_annes_revenge.glb',           50,  30,  50, -0.4),
+      load('portuguese_sailor_b_fbx.glb',      -10,  10,  20,  0.3),
+
+      // Modern Era & Wars
       load('t72m1.glb',                         40, -50, 55, -0.3),
       load('helicopter.glb',                   -40, -80, 55, 0.4),
+      load('casual_weekend_outfit.glb',         10, -60, 20, -0.1),
 
       // Future / Cyberpunk
       load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0),
