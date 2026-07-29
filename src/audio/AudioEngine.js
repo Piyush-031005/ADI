@@ -23,7 +23,7 @@ export class AudioEngine {
       6: '/music/rise of soalr system and earth.mp3?v=2',
       7: '/music/camprian perod.mp3?v=2',
       8: '/music/dinosaur.mp3?v=2',
-      9: '/music/human.mp3?v=2',
+      9: '/music/cyberpunk future.mp3?v=2', // Replaced human.mp3 to completely eradicate the rap vocals
       10: '/music/cyberpunk future.mp3?v=2',
       11: '/music/unknown last era.mp3?v=2'
     };

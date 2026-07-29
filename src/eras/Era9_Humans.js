@@ -100,36 +100,17 @@ export class Era9_Humans {
       }, undefined, e => { console.warn('skip', file, e); resolve(); });
     });
 
-    // ── LOAD ALL MODELS CONCURRENTLY FOR BLAZING FAST LOAD ──────
+    // ── LOAD ESSENTIAL MODELS (Removed rigged characters to fix severe lag) ──────
     await Promise.all([
-      // Dawn of Man (far back)
-      load('homo_heidelbergensis.glb',          -30, 280, 35,  0.3),
-      load('women_of_primitive_tribes.glb',      30, 250, 35, -0.3),
-      load('tribal_skull_with_primitive_jewelry.glb', 0, 220, 30, 0.2),
-
-      // Warriors & Ancient World
+      // Ancient World & Temples
       load('zulu.glb',                          -40, 190, 35, 0.5),
-      load('feathered_warrior_of_the_ancestors_3d_model.glb', 40, 160, 40, -0.5),
-      load('gladiator.glb',                     -30, 130, 40, 0.3),
-      load('warrior_monk_stylized_idle_animation.glb',  30, 100, 38, -0.3),
-      load('portuguese_sailor_b_fbx.glb',        0, 70,  35, 0.0),
-
-      // Ancient Temples & Empires
       load('hindu_temple.glb',                 -90, 100, 120, 0.6),
-      load('prayer_hall_tilya-kori_madrasah_samarkand.glb', 90, 80, 110, -0.6),
       load('greek_temple.glb',                 -120, 60,  130, 0.0),
 
-      // Naval & Medieval
+      // Wars & Industrial
       load('queen_annes_revenge.glb',           50, 30, 50, -0.4),
-      load('armored_king.glb',                 -40, 20, 45, 0.5),
-      load('rigged_for_ue4_-_spartan_-_free.glb', 0, 10, 42, 0.0),
-      load('hindu_warrior.glb',                -20, -20, 40, 0.3),
-
-      // Modern / Industrial
       load('t72m1.glb',                         40, -50, 55, -0.3),
       load('helicopter.glb',                   -40, -80, 55, 0.4),
-      load('generic_passenger_car_pack.glb',    10, -60, 50, 0.0),
-      load('casual_weekend_outfit.glb',         -15, -90, 38, 0.2),
 
       // Future / Cyberpunk
       load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0),
