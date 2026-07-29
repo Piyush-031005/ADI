@@ -5,7 +5,7 @@
   "description": "ĀDI — From Nothing. To Everything.",
   "scripts": {
     "dev": "vite",
-    "build": "git lfs pull && vite build",
+    "build": "node vercel-lfs-fix.cjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
