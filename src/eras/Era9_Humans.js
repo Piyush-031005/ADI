@@ -114,14 +114,9 @@ export class Era9_Humans {
         // rather than all 28 models trying to upload at the exact moment of the era transition!
         setTimeout(() => {
            if (!this.exp || !this.exp.renderer) return;
-           const rt = new THREE.WebGLRenderTarget(1, 1);
-           const tempScene = new THREE.Scene();
-           const tempCam = new THREE.PerspectiveCamera();
-           tempScene.add(model.clone()); // shallow clone so we don't mess up group visibility
-           this.exp.renderer.instance.setRenderTarget(rt);
-           this.exp.renderer.instance.render(tempScene, tempCam);
-           this.exp.renderer.instance.setRenderTarget(null);
-           rt.dispose();
+           // 100% Foolproof GPU Pre-warm: Compile this exact model using the exact lighting 
+           // from the main scene. This guarantees zero shader recompilation lag on transition!
+           this.exp.renderer.instance.compile(model, this.exp.camera.instance, this.exp.scene);
         }, 300); // 300ms delay so it doesn't stutter the main thread right after parsing
         
         resolve();

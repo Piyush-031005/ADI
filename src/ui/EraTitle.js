@@ -80,6 +80,13 @@ export class EraTitle {
     // Kill any running tweens
     gsap.killTweensOf([this.display, this.info]);
 
+    // Special case: Unknown World (Index 12) has the final full-screen message.
+    // We completely hide the era title and info here so it doesn't overlap.
+    if (data.index === 12) {
+      gsap.to([this.display, this.info], { opacity: 0, duration: 0.5 });
+      return;
+    }
+
     // Fade in center title
     gsap.fromTo(this.display,
       { opacity: 0, y: 20 },

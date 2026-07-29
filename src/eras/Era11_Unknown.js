@@ -36,8 +36,8 @@ export class Era11_Unknown {
   }
 
   _buildCosmicBeingOfLight() {
-    // Optimized: 6,000 bioluminescent quantum particles (down from 20k) for GPU performance
-    const count = 6000;
+    // Restored: 20,000 bioluminescent quantum particles for maximum detail
+    const count = 20000;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
 
@@ -107,8 +107,8 @@ export class Era11_Unknown {
           float pulse = sin(uTime * 2.5 + p.y * 0.4 + p.x * 0.3) * 0.4;
           p += normal * pulse;
           vec4 mvPos = modelViewMatrix * vec4(p, 1.0);
-          // Reduced size: 80.0 instead of 350.0 so particles don't look blocky
-          gl_PointSize = (80.0 / -mvPos.z);
+          // Restored original size for the full majestic effect
+          gl_PointSize = (250.0 / -mvPos.z);
           gl_Position = projectionMatrix * mvPos;
         }
       `,
