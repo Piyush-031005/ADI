@@ -33,12 +33,12 @@ export class Era5_Earth {
     loader.load('/models/earth.glb', (gltf) => {
       this.earthModel = gltf.scene;
       
-      // Auto-center and normalize scale
+      // Auto-center and normalize scale safely
       const box = new THREE.Box3().setFromObject(this.earthModel);
       const size = new THREE.Vector3();
       box.getSize(size);
       const maxDim = Math.max(size.x, size.y, size.z);
-      const targetScale = 5.0 / maxDim; // Normalize to 5 units sphere diameter
+      const targetScale = (maxDim > 0.001) ? (5.0 / maxDim) : 5.0; // Fallback if maxDim is 0
       this.earthModel.scale.setScalar(targetScale);
 
       this.earthModel.traverse((child) => {
@@ -48,7 +48,6 @@ export class Era5_Earth {
           if (child.material) {
             child.material.roughness = 0.4;
             child.material.metalness = 0.1;
-            child.material.envMapIntensity = 2.0;
             child.material.needsUpdate = true;
           }
         }

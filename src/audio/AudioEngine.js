@@ -13,19 +13,19 @@ export class AudioEngine {
     this.activeTrackObj = null;
 
     this.eraToTrack = {
-      0: '/music/void.mp3?v=3',
-      1: '/music/singularity.mp3?v=3',
-      2: '/music/bigbang.mp3?v=3',
-      3: '/music/stars.mp3?v=3',
-      4: '/music/black hole.mp3?v=3',
-      5: '/music/rise of soalr system and earth.mp3?v=3',
-      6: '/music/rise of soalr system and earth.mp3?v=3',
-      7: '/music/rise of soalr system and earth.mp3?v=3', // First Life (changed to not share with Cambrian)
-      8: '/music/camprian perod.mp3?v=3', // Cambrian
-      9: '/music/dinosaur.mp3?v=3',       // Dinosaurs
-      10: '/music/human.mp3?v=3',         // Humans
-      11: '/music/cyberpunk future.mp3?v=3', // Future
-      12: '/music/unknown last era.mp3?v=3'  // Unknown
+      0: '/music/void.mp3?v=4',
+      1: '/music/singularity.mp3?v=4',
+      2: '/music/bigbang.mp3?v=4',
+      3: '/music/stars.mp3?v=4',
+      4: '/music/black hole.mp3?v=4',
+      5: '/music/rise of soalr system and earth.mp3?v=4',
+      6: '/music/rise of soalr system and earth.mp3?v=4', // Earth shares with Solar System
+      7: '/music/camprian perod.mp3?v=4', // First Life gets its own sound
+      8: '/music/dinosaur.mp3?v=4',       // Cambrian gets its own sound
+      9: '/music/human.mp3?v=4',         // Dinosaur gets its own sound
+      10: '/music/cyberpunk future.mp3?v=4', // Human gets its own sound
+      11: '/music/unknown last era.mp3?v=4', // Future shares with Unknown
+      12: '/music/unknown last era.mp3?v=4'  // Unknown
     };
     
     this.ctx = null;
