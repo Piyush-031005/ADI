@@ -92,24 +92,45 @@ export class Era9_Humans {
           gltf.animations.forEach(clip => mixer.clipAction(clip).play());
           this.mixers.push(mixer);
         }
-        // 100% Foolproof Incremental GPU Pre-warm
-        // We render this specific model to a 1x1 offscreen target a moment after it loads.
-        // This guarantees all its huge textures upload to the GPU immediately in the background,
-        // rather than all 28 models trying to upload at the exact moment of the era transition!
-        setTimeout(() => {
-           if (!this.exp || !this.exp.renderer) return;
-           // 100% Foolproof GPU Pre-warm: Compile this exact model using the exact lighting 
-           // from the main scene. This guarantees zero shader recompilation lag on transition!
-           this.exp.renderer.instance.compile(model, this.exp.camera.instance, this.exp.scene);
-        }, 300); // 300ms delay so it doesn't stutter the main thread right after parsing
-        
         resolve();
       }, undefined, e => { console.warn('skip', file, e); resolve(); });
     });
 
-    // ── STAGGERED LOADING FOR ZERO LAG ──────
-    // Load the massive cities first so the environment is ready instantly.
+    // ── LOAD ALL MODELS CONCURRENTLY FOR BLAZING FAST LOAD ──────
     await Promise.all([
+      // Dawn of Man (far back)
+      load('homo_heidelbergensis.glb',          -30, 280, 35,  0.3),
+      load('women_of_primitive_tribes.glb',      30, 250, 35, -0.3),
+      load('tribal_skull_with_primitive_jewelry.glb', 0, 220, 30, 0.2),
+
+      // Warriors & Ancient World
+      load('zulu.glb',                          -40, 190, 35, 0.5),
+      load('feathered_warrior_of_the_ancestors_3d_model.glb', 40, 160, 40, -0.5),
+      load('gladiator.glb',                     -30, 130, 40, 0.3),
+      load('warrior_monk_stylized_idle_animation.glb',  30, 100, 38, -0.3),
+      load('portuguese_sailor_b_fbx.glb',        0, 70,  35, 0.0),
+
+      // Ancient Temples & Empires
+      load('hindu_temple.glb',                 -90, 100, 120, 0.6),
+      load('prayer_hall_tilya-kori_madrasah_samarkand.glb', 90, 80, 110, -0.6),
+      load('greek_temple.glb',                 -120, 60,  130, 0.0),
+
+      // Naval & Medieval
+      load('queen_annes_revenge.glb',           50, 30, 50, -0.4),
+      load('armored_king.glb',                 -40, 20, 45, 0.5),
+      load('rigged_for_ue4_-_spartan_-_free.glb', 0, 10, 42, 0.0),
+      load('hindu_warrior.glb',                -20, -20, 40, 0.3),
+
+      // Modern / Industrial
+      load('t72m1.glb',                         40, -50, 55, -0.3),
+      load('helicopter.glb',                   -40, -80, 55, 0.4),
+      load('generic_passenger_car_pack.glb',    10, -60, 50, 0.0),
+      load('casual_weekend_outfit.glb',         -15, -90, 38, 0.2),
+
+      // Future / Cyberpunk
+      load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0),
+
+      // CITIES: Surround the camera path with massive cities positioned carefully outside the path
       load('city.glb',                          0,  -250,  600, 0.0),
       load('apocalyptic_city.glb',              0,   550,  700, Math.PI),
       load('san_francisco_city.glb',          450,   150,  600, -Math.PI / 2),
@@ -117,37 +138,6 @@ export class Era9_Humans {
       load('futuristic_city.glb',             350,  -150,  600, -Math.PI / 4),
       load('cyberpunk_city_-_1.glb',         -350,  -150,  600,  Math.PI / 4)
     ]);
-
-    // Load the rest of the models incrementally in the background to completely eliminate stutter!
-    const backgroundModels = [
-      ['homo_heidelbergensis.glb', -30, 280, 35, 0.3],
-      ['women_of_primitive_tribes.glb', 30, 250, 35, -0.3],
-      ['tribal_skull_with_primitive_jewelry.glb', 0, 220, 30, 0.2],
-      ['zulu.glb', -40, 190, 35, 0.5],
-      ['feathered_warrior_of_the_ancestors_3d_model.glb', 40, 160, 40, -0.5],
-      ['gladiator.glb', -30, 130, 40, 0.3],
-      ['warrior_monk_stylized_idle_animation.glb', 30, 100, 38, -0.3],
-      ['portuguese_sailor_b_fbx.glb', 0, 70, 35, 0.0],
-      ['hindu_temple.glb', -90, 100, 120, 0.6],
-      ['prayer_hall_tilya-kori_madrasah_samarkand.glb', 90, 80, 110, -0.6],
-      ['greek_temple.glb', -120, 60, 130, 0.0],
-      ['queen_annes_revenge.glb', 50, 30, 50, -0.4],
-      ['armored_king.glb', -40, 20, 45, 0.5],
-      ['rigged_for_ue4_-_spartan_-_free.glb', 0, 10, 42, 0.0],
-      ['hindu_warrior.glb', -20, -20, 40, 0.3],
-      ['t72m1.glb', 40, -50, 55, -0.3],
-      ['helicopter.glb', -40, -80, 55, 0.4],
-      ['generic_passenger_car_pack.glb', 10, -60, 50, 0.0],
-      ['casual_weekend_outfit.glb', -15, -90, 38, 0.2],
-      ['ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0]
-    ];
-
-    // Pop them in one by one every 200ms without blocking the main thread transition
-    backgroundModels.forEach((m, i) => {
-      setTimeout(() => {
-        load(...m);
-      }, 200 * i);
-    });
   }
 
   getCameraPath() {
