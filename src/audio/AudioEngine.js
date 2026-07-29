@@ -13,19 +13,19 @@ export class AudioEngine {
     this.activeTrackObj = null;
 
     this.eraToTrack = {
-      0: '/music/void.mp3?v=4',
-      1: '/music/singularity.mp3?v=4',
-      2: '/music/bigbang.mp3?v=4',
-      3: '/music/stars.mp3?v=4',
-      4: '/music/black hole.mp3?v=4',
-      5: '/music/rise of soalr system and earth.mp3?v=4',
-      6: '/music/rise of soalr system and earth.mp3?v=4', // Earth shares with Solar System
-      7: '/music/first life.mp3?v=4',
-      8: '/music/camprian perod.mp3?v=4',
-      9: '/music/dinosaur.mp3?v=4',
-      10: '/music/human.mp3?v=4',
-      11: '/music/cyberpunk future.mp3?v=4',
-      12: '/music/cyberpunk future.mp3?v=4'
+      0: '/music/void.mp3?v=7',
+      1: '/music/singularity.mp3?v=7',
+      2: '/music/bigbang.mp3?v=7',
+      3: '/music/stars.mp3?v=7',
+      4: '/music/black hole.mp3?v=7',
+      5: '/music/rise of soalr system and earth.mp3?v=7',
+      6: '/music/rise of soalr system and earth.mp3?v=7',
+      7: '/music/firstlife.mp3?v=7',
+      8: '/music/cambrian.mp3?v=7',
+      9: '/music/dinosaur.mp3?v=7',
+      10: '/music/human life.mp3?v=7',
+      11: '/music/future and unknown unknown last era.mp3?v=7',
+      12: '/music/future and unknown unknown last era.mp3?v=7'
     };
     
     this.ctx = null;
