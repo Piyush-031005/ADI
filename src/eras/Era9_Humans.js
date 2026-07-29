@@ -220,6 +220,21 @@ export class Era9_Humans {
   show() {
     this.visible = true;
     this.group.visible = true;
+    
+    // PROGRESSIVE REVEAL TO PREVENT LAG
+    // If we make all 21 massive models visible on the exact same frame, WebGL stutters.
+    // Instead, we hide them and quickly pop them in one by one over ~1 second.
+    this.models.forEach(m => { m.visible = false; });
+    
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < this.models.length) {
+        this.models[index].visible = true;
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 40); // reveal one model every 40ms (~2 frames)
   }
 
   hide() {
