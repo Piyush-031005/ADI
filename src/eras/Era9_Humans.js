@@ -50,22 +50,6 @@ export class Era9_Humans {
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = this.FLOOR_Y - 0.5;
     this.group.add(floor);
-
-    // Star field background — fill the sky so there's NO black void
-    const starCount = 3000;
-    const starPos = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-      const r = 800 + Math.random() * 200;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      starPos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
-      starPos[i * 3 + 1] = r * Math.abs(Math.sin(phi) * Math.sin(theta)); // only upper hemisphere
-      starPos[i * 3 + 2] = r * Math.cos(phi);
-    }
-    const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2.5, sizeAttenuation: false, opacity: 0.9, transparent: true });
-    this.group.add(new THREE.Points(starGeo, starMat));
   }
 
   // Place a loaded model so its feet land exactly on FLOOR_Y
@@ -123,43 +107,33 @@ export class Era9_Humans {
       }, undefined, e => { console.warn('skip', file, e); resolve(); });
     });
 
-    // ── STAGE 0: Dawn of Man (far back) ──────────────────────────────────
-    // Removed excess primitive models to ensure blazing fast loading
-    await load('homo_heidelbergensis.glb',          -30, 220, 35,  0.3);
-    await delay(80);
-
-    // ── STAGE 1: Warriors & Ancient World ────────────────────────────────
-    await load('feathered_warrior_of_the_ancestors_3d_model.glb', 40, 130, 40, -0.5);
-    await delay(80);
-    await load('gladiator.glb',                     -30, 110, 40, 0.3);
-    await delay(80);
-
-    // ── STAGE 2: Ancient Temples & Empires ───────────────────────────────
-    await load('hindu_temple.glb',                 -90, 100, 120, 0.6);
-    await delay(80);
-    await load('greek_temple.glb',                 -120, 60,  130, 0.0);
-    await delay(80);
-
-    // ── STAGE 3: Naval & Medieval ────────────────────────────────────────
-    await load('queen_annes_revenge.glb',           50, 30, 50, -0.4);
-    await delay(80);
-
-    // ── STAGE 4: Modern / Industrial ─────────────────────────────────────
-    await load('t72m1.glb',                         40, -50, 55, -0.3);
-    await delay(80);
-    await load('helicopter.glb',                   -40, -80, 55, 0.4);  // flies above ground
-    await delay(80);
-
-    // ── STAGE 5: Future / Cyberpunk ──────────────────────────────────────
-    await load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0);
-    await delay(80);
-
-    // ── CITIES: Enlarge to cover the entire background ──────────────────────────
-    // Front city (scaled massively to cover the whole front horizon instead of stars)
-    await load('city.glb',                          0,   -250, 450, 0.0);
-    await delay(80);
-    // Cyberpunk future (massive, far back covering the whole back horizon)
-    await load('apocalyptic_city.glb',              0,    300, 450, Math.PI);
+    // ── LOAD ALL SURVIVING MODELS CONCURRENTLY FOR BLAZING FAST LOAD ──────
+    await Promise.all([
+      // Dawn of Man (far back)
+      load('homo_heidelbergensis.glb',          -30, 220, 35,  0.3),
+      
+      // Warriors & Ancient World
+      load('feathered_warrior_of_the_ancestors_3d_model.glb', 40, 130, 40, -0.5),
+      load('gladiator.glb',                     -30, 110, 40, 0.3),
+      
+      // Ancient Temples & Empires
+      load('hindu_temple.glb',                 -90, 100, 120, 0.6),
+      load('greek_temple.glb',                 -120, 60,  130, 0.0),
+      
+      // Naval & Medieval
+      load('queen_annes_revenge.glb',           50, 30, 50, -0.4),
+      
+      // Modern / Industrial
+      load('t72m1.glb',                         40, -50, 55, -0.3),
+      load('helicopter.glb',                   -40, -80, 55, 0.4),
+      
+      // Future / Cyberpunk
+      load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0),
+      
+      // CITIES: Enlarge to cover the entire background from start Z=250
+      load('city.glb',                          0,    0,   600, 0.0),
+      load('apocalyptic_city.glb',              0,    450, 800, Math.PI)
+    ]);
   }
 
   getCameraPath() {
