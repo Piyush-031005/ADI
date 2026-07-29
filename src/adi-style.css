@@ -242,23 +242,15 @@ body, html {
   color: var(--color-muted);
 }
 
-@keyframes fadeOutHint {
-  0% { opacity: 0; filter: blur(5px); }
-  10% { opacity: 0.6; filter: blur(0); }
-  80% { opacity: 0.6; filter: blur(0); }
-  100% { opacity: 0; pointer-events: none; visibility: hidden; }
-}
-
-/* Drag to orbit hint - Vanishing Blur at bottom */
+/* Drag to orbit hint - Below Scroll Hint */
 #drag-hint {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 10px;
+  right: 40px;
   display: flex;
   align-items: center;
   gap: 12px;
-  opacity: 0;
+  opacity: 0.6;
   pointer-events: none;
   font-family: 'Space Mono', monospace;
   font-size: 11px;
@@ -266,8 +258,6 @@ body, html {
   text-transform: uppercase;
   color: #fff;
   z-index: 50;
-  animation: fadeOutHint 8s ease forwards;
-  animation-delay: 1s;
 }
 .scroll-hint-arrow {
   width: 1px; height: 30px;
