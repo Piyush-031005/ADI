@@ -45,9 +45,9 @@ export class Era0_Void {
       const gz  = (Math.sqrt(-2.0 * Math.log(Math.max(1e-6, Math.random()))) *
                    Math.cos(2 * Math.PI * Math.random()));
 
-      // Spread: sigma=5 for a visible cluster that isn't too dense or too dispersed
+      // Spread: sigma=3 for a tight cluster
       // Camera is at Z=80, cluster is around Z=20.
-      const sigma = 5;
+      const sigma = 3;
       this._posArray[i * 3]     = gx * sigma;
       this._posArray[i * 3 + 1] = gy * sigma;
       this._posArray[i * 3 + 2] = gz * sigma * 0.7 + 20; // Z offset toward camera
@@ -57,10 +57,10 @@ export class Era0_Void {
     geo.setAttribute('position', new THREE.Float32BufferAttribute(this._posArray.slice(), 3));
 
     this.dust = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 0.5, // Visible size
-      color: 0x667788, // Blue-grey dust
+      size: 0.15, // Very subtle, small particles
+      color: 0x556677, // Subtle blue-grey
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.4,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true,

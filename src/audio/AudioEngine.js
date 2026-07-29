@@ -81,17 +81,17 @@ export class AudioEngine {
       if (url.includes('human.mp3')) {
         let isFading = false;
         audio.addEventListener('timeupdate', () => {
-          if (audio.currentTime > 15 && !isFading && trackGain.gain.value > 0.1) {
+          if (audio.currentTime > 10 && !isFading && trackGain.gain.value > 0.1) {
             isFading = true;
             gsap.to(trackGain.gain, { 
               value: 0, 
-              duration: 2, 
+              duration: 0.5, 
               ease: 'power2.inOut',
               onComplete: () => {
                 audio.currentTime = 0;
                 gsap.to(trackGain.gain, { 
                   value: 0.8, 
-                  duration: 2, 
+                  duration: 1, 
                   ease: 'power2.inOut',
                   onComplete: () => { isFading = false; }
                 });

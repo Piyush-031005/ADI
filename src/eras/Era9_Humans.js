@@ -130,9 +130,13 @@ export class Era9_Humans {
       // Future / Cyberpunk
       load('ghost_in_the_shell_cyborg_head.glb', 0, -130, 40, 0.0),
       
-      // CITIES: Enlarge to cover the entire background from start Z=250
-      load('city.glb',                          0,    0,   600, 0.0),
-      load('apocalyptic_city.glb',              0,    450, 800, Math.PI)
+      // CITIES: Surround the camera path (Z=250 to Z=60) with massive cities
+      load('city.glb',                          0,    0,   600, 0.0),             // Front
+      load('apocalyptic_city.glb',              0,    500, 700, Math.PI),         // Back (behind start)
+      load('san_francisco_city.glb',          350,  250, 600, -Math.PI / 2),      // Right
+      load('night_city_japan.glb',           -350,  250, 600,  Math.PI / 2),      // Left
+      load('futuristic_city.glb',             250,   50, 600, -Math.PI / 4),      // Front-Right
+      load('cyberpunk_city_-_1.glb',         -250,   50, 600,  Math.PI / 4)       // Front-Left
     ]);
   }
 
